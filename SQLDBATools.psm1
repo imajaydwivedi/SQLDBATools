@@ -22,6 +22,7 @@ else {
 $modulePath = Split-Path $MyInvocation.MyCommand.Path -Parent;
 $functionsPath = Join-Path $modulePath 'Functions'
 $privatePath = Join-Path $modulePath 'Private'
+$DependenciesPath = Join-Path $modulePath 'Dependencies'
 $pathSeparator = if($isWin) {'\'} else {'/'}
 $verbose = $false;
 if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbose[:$false]
@@ -29,9 +30,7 @@ if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbo
 }
 
 # Set basic environment variables
-[string]$envFileBase = $null
-[string]$envFile = $null
-$envFileBase = Join-Path $functionsPath 'Set-SdtEnvironmentVariables.ps1'
+$envFileBase = Join-Path $DependenciesPath 'Set-SdtEnvironmentVariables.ps1'
 $envFile = Join-Path $privatePath 'Set-SdtEnvironmentVariables.ps1'
 
 # First Load Environment Variables
@@ -98,5 +97,5 @@ Push-Location;
 
 <#
 Remove-Module SQLDBATools,dbatools,SqlServer -ErrorAction SilentlyContinue;
-Import-Module SQLDBATools
+Import-Module SQLDBATools -DisableNameChecking
 #>
