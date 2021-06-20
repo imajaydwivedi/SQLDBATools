@@ -10,6 +10,7 @@ Push-Location;
 
 # Establish and enforce coding rules in expressions, scripts, and script blocks.
 Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
 # Check for OS version
 if([bool]($PSVersionTable.PSobject.Properties.name -match "Platform")) {
@@ -20,6 +21,7 @@ else {
 }
 $modulePath = Split-Path $MyInvocation.MyCommand.Path -Parent;
 $functionsPath = Join-Path $modulePath 'Functions'
+$privatePath = Join-Path $modulePath 'Private'
 $pathSeparator = if($isWin) {'\'} else {'/'}
 $verbose = $false;
 if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbose[:$false]
@@ -30,7 +32,7 @@ if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbo
 [string]$envFileBase = $null
 [string]$envFile = $null
 $envFileBase = Join-Path $functionsPath 'Set-SdtEnvironmentVariables.ps1'
-$envFile = Join-Path $modulePath "Set-SdtEnvironmentVariables.ps1"
+$envFile = Join-Path $privatePath 'Set-SdtEnvironmentVariables.ps1'
 
 # First Load Environment Variables
 # File :Set-EnvironmentVariables.ps1" is also present inside Functions subdirectory with dummy values.
@@ -43,8 +45,11 @@ if(Test-Path $envFile) {
     Invoke-Expression -Command $envFile;
 }
 else {
-    Copy-Item $envFileBase -Destination $modulePath | Out-Null;
-    Write-Output "Environment file '$envFileBase' created.`nKindly modify the variable values according to your environment";
+    if(-not (Test-Path $privatePath)) {
+        [System.IO.Directory]::CreateDirectory($privatePath);
+    }
+    Copy-Item $envFileBase -Destination $envFile | Out-Null;
+    Write-Output "Environment file '$envFile' created.`nKindly modify the variable values according to your environment";
 }
 
 $M_dbatools = Get-Module -Name dbatools -ListAvailable -Verbose:$false;

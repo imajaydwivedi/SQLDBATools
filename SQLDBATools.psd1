@@ -71,7 +71,28 @@ PowerShellVersion = '3.0'
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 # ((Get-ChildItem -Path $functionsPath | Select-Object -ExpandProperty BaseName) | % {"'$_'"}) -Join ',' | ogv
-FunctionsToExport = @('Add-SdtApplicationInfo','Add-SdtCollectionError','Add-SdtDatabaseBackupInfo','Add-SdtDatabaseInfo','Add-SdtHostsEntry','Add-SdtServerInfo','Add-SdtSqlAgentOperator','Add-SdtSqlInstanceInfo','Add-SdtVolumeInfo','Export-SdtPassword','Find-SdtKeywordInSQLDBATools','Find-SdtSQLInstances','Get-SdtAdministrativeEvents','Get-SdtAdUserInfo','Get-SdtBackupHistory','Get-SdtClusterInfo','Get-SdtDatabaseBackupInfo','Get-SdtDatabaseBackupInfo_SMO','Get-SdtDatabaseInfo','Get-SdtDatabasePermissions','Get-SdtDatabaseRestoreScript','Get-SdtDbaRestoreScript','Get-SdtFullQualifiedDomainName','Get-SdtHBAWin','Get-SdtLinkedServer','Get-SdtMacAddress','Get-SdtMachineType','Get-SdtMSSQLLinkPasswords','Get-SdtOrphanDatabaseFiles','Get-SdtPassword4Account','Get-SdtPerfMonCounters','Get-SdtPingStatus','Get-SdtPowerPlanInfo','Get-SdtProcessForDBA','Get-SdtRebootHistory','Get-SdtRunningQueries','Get-SdtSecurityCheckInfo','Get-SdtServerInfo','Get-SdtSpaceToAdd','Get-SdtSQLInstance','Get-SdtSQLInstanceInfo','Get-SdtVolumeInfo','Get-SdtVolumeSpaceConsumers','Get-SdtWhoIsActive','Grant-SdtSqlAccountRequiredPrivileges','Install-SdtOlaHallengrenMaintenanceScripts','Install-SdtSqlInstance','Invoke-SdtCommandMultiThreaded','Invoke-Sdtsp_WhoIsActive','Invoke-SdtSqlQuery','Invoke-SdtTsqlScript','Join-SdtObject','Optimize-SdtModelDatabase','Out-SdtDataTable','Reset-SdtOwnerShipToSystemAdministrators','Retry-SdtCommand','Select-SdtServerInfo','Send-SdtSQLMail','Set-SdtBaselineWithWhoIsActive','Set-SdtBlockingAlert','Set-SdtDatabaseBackupJobs','Set-SdtDbaConfigurations','Set-SdtDbaLogWalk','Set-SdtDbaMailProfile','Set-SdtEnvironmentVariables','Set-SdtIndexOptimizeJobs','Set-SdtLogWalkAlert_with_ServiceBroker','Set-SdtOwner','Set-SdtSelfServiceModules','Set-SdtServerState','Set-SdtServiceBroker_4_LogWalkAlert','Set-SdtSQLServiceState','Show-SdtPassword','Track-SdtRSJob','Uninstall-SdtSqlInstance'	
+FunctionsToExport = @('Add-SdtApplicationInfo','Add-SdtCollectionError','Add-SdtDatabaseBackupInfo',
+                        'Add-SdtDatabaseInfo','Add-SdtHostsEntry','Add-SdtServerInfo','Add-SdtSqlAgentOperator',
+                        'Add-SdtSqlInstanceInfo','Add-SdtVolumeInfo','Export-SdtPassword',
+                        'Find-SdtKeywordInSQLDBATools','Find-SdtSQLInstances','Get-SdtAdministrativeEvents',
+                        'Get-SdtAdUserInfo','Get-SdtBackupHistory','Get-SdtClusterInfo',
+                        'Get-SdtDatabaseBackupInfo','Get-SdtDatabaseBackupInfo_SMO','Get-SdtDatabaseInfo',
+                        'Get-SdtDatabasePermissions','Get-SdtDatabaseRestoreScript','Get-SdtDbaRestoreScript',
+                        'Get-SdtFullQualifiedDomainName','Get-SdtHBAWin','Get-SdtLinkedServer',
+                        'Get-SdtMacAddress','Get-SdtMachineType','Get-SdtMSSQLLinkPasswords',
+                        'Get-SdtOrphanDatabaseFiles','Get-SdtPassword4Account','Get-SdtPerfMonCounters','Get-SdtPingStatus',
+                        'Get-SdtPowerPlanInfo','Get-SdtProcessForDBA','Get-SdtRebootHistory','Get-SdtRunningQueries',
+                        'Get-SdtSecurityCheckInfo','Get-SdtServerInfo','Get-SdtSpaceToAdd','Get-SdtSQLInstance',
+                        'Get-SdtSQLInstanceInfo','Get-SdtVolumeInfo','Get-SdtVolumeSpaceConsumers','Get-SdtWhoIsActive',
+                        'Grant-SdtSqlAccountRequiredPrivileges','Install-SdtOlaHallengrenMaintenanceScripts',
+                        'Install-SdtSqlInstance','Invoke-SdtCommandMultiThreaded','Invoke-Sdtsp_WhoIsActive',
+                        'Invoke-SdtSqlQuery','Invoke-SdtTsqlScript','Join-SdtObject','Optimize-SdtModelDatabase',
+                        'Out-SdtDataTable','Reset-SdtOwnerShipToSystemAdministrators','Retry-SdtCommand','Select-SdtServerInfo',
+                        'Send-SdtSQLMail','Set-SdtBaselineWithWhoIsActive','Set-SdtBlockingAlert','Set-SdtDatabaseBackupJobs',
+                        'Set-SdtDbaConfigurations','Set-SdtDbaLogWalk','Set-SdtDbaMailProfile','Set-SdtIndexOptimizeJobs',
+                        'Set-SdtLogWalkAlert_with_ServiceBroker','Set-SdtOwner','Set-SdtSelfServiceModules','Set-SdtServerState',
+                        'Set-SdtServiceBroker_4_LogWalkAlert','Set-SdtSQLServiceState','Show-SdtPassword',
+                        'Track-SdtRSJob','Uninstall-SdtSqlInstance'	
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
