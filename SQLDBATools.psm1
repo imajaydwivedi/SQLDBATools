@@ -87,7 +87,6 @@ if($verbose) {
     Write-Host "====================================================";
     Write-Host "Loading other Functions.." -ForegroundColor Yellow;
 }
-#foreach($file in Get-ChildItem -Path $(Join-Path $PSScriptRoot Functions)) {
 foreach($file in Get-ChildItem -Path $functionsPath) {
     . ($file.FullName)
 }
