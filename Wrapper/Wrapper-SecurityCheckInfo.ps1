@@ -6,7 +6,7 @@ $tsqlInventory = @"
 select InstanceName from Info.Instance
 "@;
 
-$ServerInstances = @(Invoke-Sqlcmd -ServerInstance $InventoryInstance -Database $InventoryDatabase -Query $tsqlInventory | 
+$ServerInstances = @(Invoke-Sqlcmd -ServerInstance $sdtInventoryInstance -Database $sdtInventoryDatabase -Query $tsqlInventory | 
                         Select-Object -ExpandProperty InstanceName);
 
 #Run-CommandMultiThreaded -ObjectList $ServerInstances -Command "Collect-SecurityCheckInfo" -InputParam ServerInstance -MaxThreads 26;
@@ -15,7 +15,7 @@ $Result = Get-SecurityCheckInfo -ServerInstance $ServerInstances;
 
 $dtable = $Result | Out-DataTable;    
 
-$cn = new-object System.Data.SqlClient.SqlConnection("Data Source=$InventoryInstance;Integrated Security=SSPI;Initial Catalog=$InventoryDatabase");
+$cn = new-object System.Data.SqlClient.SqlConnection("Data Source=$sdtInventoryInstance;Integrated Security=SSPI;Initial Catalog=$sdtInventoryDatabase");
 $cn.Open();
 
 $bc = new-object ("System.Data.SqlClient.SqlBulkCopy") $cn;

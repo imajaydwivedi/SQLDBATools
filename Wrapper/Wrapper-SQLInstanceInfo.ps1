@@ -3,16 +3,16 @@ Import-Module dbatools;
 Remove-Module SQLDBATools -ErrorAction SilentlyContinue;
 Import-Module SQLDBATools -DisableNameChecking;
 
-$global:LogErrorToInventoryTable = $true;
+$global:sdtLogErrorToInventoryTable = $true;
 
 $env:PSModulePath = $env:PSModulePath + ";" + "C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules\;C:\Program Files\MVPSI\Modules\";
-$ExecutionLogsFile = "$SQLDBATools_ResultsDirectory\Logs\Wrapper-ServerInfo\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Wrapper-ServerInfo\___ExecutionLogs.txt";
 
 $tsqlInventoryServers = @"
 select * from dbo.Server s where s.IsStandaloneServer = 1 or s.IsSqlCluster = 1 or s.IsAG = 1 or s.IsAgNode = 1
 "@;
 
-$Servers = Invoke-DbaQuery -SqlInstance $InventoryInstance -Database $InventoryDatabase -Query $tsqlInventoryServers;
+$Servers = Invoke-DbaQuery -SqlInstance $sdtInventoryInstance -Database $sdtInventoryDatabase -Query $tsqlInventoryServers;
 foreach($Server in $Servers)
 {
     Write-Host "Processing server [$($Server.FQDN)]";
@@ -62,5 +62,5 @@ Error:-
     }
 }
 
-$global:LogErrorToInventoryTable = $false;
+$global:sdtLogErrorToInventoryTable = $false;
 

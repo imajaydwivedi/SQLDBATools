@@ -1,12 +1,12 @@
 ﻿Import-Module SQLDBATools -DisableNameChecking;
 
-$ExecutionLogsFile = "$SQLDBATools_ResultsDirectory\Logs\Get-DatabaseBackupInfo\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-DatabaseBackupInfo\___ExecutionLogs.txt";
 
 $instancesquery = @"
 SELECT Name as InstanceName FROM [dbo].[Instance] 
 WHERE IsDecommissioned = 0 AND [IsPowerShellLinked] = 0 AND Domain = 'Corporate.local'
 "@;
-$instances = Execute-SqlQuery -Query $instancesquery -ServerInstance $InventoryInstance -Database $InventoryDatabase;
+$instances = Execute-SqlQuery -Query $instancesquery -ServerInstance $sdtInventoryInstance -Database $sdtInventoryDatabase;
 $servers = @($instances | select -ExpandProperty InstanceName);
 
 if (Test-Path $ExecutionLogsFile) {

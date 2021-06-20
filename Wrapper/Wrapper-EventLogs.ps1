@@ -4,7 +4,7 @@ Import-Module dbatools #-Scope Local -ErrorAction SilentlyContinue;
 #Import-Module SQLDBATools -DisableNameChecking;
 Invoke-Expression -Command "C:\Set-EnvironmentVariables.ps1";
 
-$ExecutionLogsFile = "$SQLDBATools_ResultsDirectory\Logs\Wrapper-EventLogs\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Wrapper-EventLogs\___ExecutionLogs.txt";
 
 $Servers = @('SqlNode01','SqlNode02','SqlNode03');
 $EventIDs = @(7034,1069,2004)
@@ -31,7 +31,7 @@ TRY
     }
     $ErrorLogs = Invoke-Command -ComputerName $Servers -ScriptBlock $Command -ErrorAction SilentlyContinue;
     $ErrorLogs | Select-Object TimeGenerated, MachineName, Source, EventID, @{l='EntryType';e={$_.EntryType.Value}}, Message `
-               | Write-DbaDataTable -SqlInstance $InventoryInstance -Database $AutomationDatabase -Schema 'dbo' -Table 'EventLogs' -AutoCreateTable -Truncate;
+               | Write-DbaDataTable -SqlInstance $sdtInventoryInstance -Database $sdtAutomationDatabase -Schema 'dbo' -Table 'EventLogs' -AutoCreateTable -Truncate;
     
     return '0';
 }

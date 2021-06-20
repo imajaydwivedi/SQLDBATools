@@ -2,10 +2,10 @@
 
 Import-Module SQLDBATools -DisableNameChecking;
 
-$ExecutionLogsFile = "$SQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo\___ExecutionLogs.txt";
-if (!(Test-Path "$SQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo")) {
-    Write-Verbose "Path "+"$SQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo does not exist. Creating it.";
-    New-Item -ItemType "directory" -Path "$SQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo";
+$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo\___ExecutionLogs.txt";
+if (!(Test-Path "$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo")) {
+    Write-Verbose "Path "+"$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo does not exist. Creating it.";
+    New-Item -ItemType "directory" -Path "$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo";
 }
 
 
@@ -14,7 +14,7 @@ select ServerName from [info].[Server];
 --SELECT Name as InstanceName FROM [Info].[Instance] WHERE IsDecommissioned = 0
 "@;
 
-$machines = Execute-SqlQuery -Query $instancesquery -ServerInstance $InventoryInstance -Database $InventoryDatabase;
+$machines = Execute-SqlQuery -Query $instancesquery -ServerInstance $sdtInventoryInstance -Database $sdtInventoryDatabase;
 $servers = @($machines | select -ExpandProperty ServerName);
 
 
@@ -22,7 +22,7 @@ TRY {
     if (Test-Path $ExecutionLogsFile) {
         Remove-Item $ExecutionLogsFile;
         # Clear last Log generated
-        Get-ChildItem "$SQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo" | Remove-Item;
+        Get-ChildItem "$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo" | Remove-Item;
     }
 
     "Script running under context of [$($env:USERDOMAIN)\$($env:USERNAME)]

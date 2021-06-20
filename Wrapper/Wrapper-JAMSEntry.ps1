@@ -5,7 +5,7 @@ Import-Module dbatools #-Scope Local -ErrorAction SilentlyContinue;
 Import-Module JAMS;
 Invoke-Expression -Command "C:\Set-EnvironmentVariables.ps1";
 
-$ExecutionLogsFile = "$SQLDBATools_ResultsDirectory\Logs\Wrapper-JAMSEntry\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Wrapper-JAMSEntry\___ExecutionLogs.txt";
 
 # Set Jams Server
 $JAMS_Server = 'TUL1MDSEJSQ3';
@@ -28,7 +28,7 @@ TRY
     
     $JAMS_CurrentSetups | Select-Object @{l='ServerName';e={ if($_.Setup -match "\s(?'ServerName'TUL1\w+)") { $Matches['ServerName'] } else {$null} }}, SetupID, Setup, JAMSEntry, JobName, Description, CurrentState, TodaysDate, HoldTime, OriginalHoldTime, `
                                     ElapsedTime, CompletionTime, FinalStatus, Held, Stalled, WaitFor, StepWait, Halted, InitiatorType, SubmittedBy, @{l='CollectionTime';e={Get-Date}} | #ogv
-    Write-DbaDataTable -SqlInstance $InventoryInstance -Database $InventoryDatabase -Schema 'Staging' -Table JAMSEntry #-AutoCreateTable
+    Write-DbaDataTable -SqlInstance $sdtInventoryInstance -Database $sdtInventoryDatabase -Schema 'Staging' -Table JAMSEntry #-AutoCreateTable
 
     #return "Script Wrapper-JAMSEntry executed successfully";
     return '0';

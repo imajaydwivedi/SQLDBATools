@@ -3,14 +3,14 @@
 Import-Module SQLDBATools -DisableNameChecking;
 #Import-Module dbatools -DisableNameChecking;
 
-$ExecutionLogsFile = "$SQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues\___ExecutionLogs.txt";
 #New-Item $ExecutionLogsFile -Force
 
 # Truncate Staging table 
-#Invoke-Sqlcmd -ServerInstance $InventoryInstance -Database $InventoryDatabase -Query 'truncate table  [SQLDBATools].Staging.[AOReplicaInfo];';
+#Invoke-Sqlcmd -ServerInstance $sdtInventoryInstance -Database $sdtInventoryDatabase -Query 'truncate table  [SQLDBATools].Staging.[AOReplicaInfo];';
 
 $instancesquery ="SELECT ListenerName FROM Info.AlwaysOnListener";
-$instances = Execute-SqlQuery -Query $instancesquery -ServerInstance $InventoryInstance -Database $InventoryDatabase #-ConnectionTimeout 0 -QueryTimeout 0
+$instances = Execute-SqlQuery -Query $instancesquery -ServerInstance $sdtInventoryInstance -Database $sdtInventoryDatabase #-ConnectionTimeout 0 -QueryTimeout 0
 
 $servers = @($instances | select -ExpandProperty ListenerName);
 
@@ -65,7 +65,7 @@ $(Get-Date) => Script running under context of [$($env:USERDOMAIN)\$($env:USERNA
     
     $dtable = $Result #| Out-DataTable;    
         
-    $cn = new-object System.Data.SqlClient.SqlConnection("Data Source=$InventoryInstance;Integrated Security=SSPI;Initial Catalog=$InventoryDatabase");
+    $cn = new-object System.Data.SqlClient.SqlConnection("Data Source=$sdtInventoryInstance;Integrated Security=SSPI;Initial Catalog=$sdtInventoryDatabase");
     $cn.Open();
 
     $bc = new-object ("System.Data.SqlClient.SqlBulkCopy") $cn;
@@ -79,11 +79,11 @@ $(Get-Date) => Script running under context of [$($env:USERDOMAIN)\$($env:USERNA
 CATCH {
             $ErrorMessage = $_.Exception.Message;
             $FailedItem = $_.Exception.ItemName;
-            $errorFile = "$SQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues\$AOServer.txt";
+            $errorFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues\$AOServer.txt";
 
             # Create if Error Log path does not exist
-            if (!(Test-Path "$SQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues")) {
-                New-Item "$SQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues" -ItemType directory;
+            if (!(Test-Path "$sdtSQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues")) {
+                New-Item "$sdtSQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues" -ItemType directory;
             }
 
             # Drop old error log file

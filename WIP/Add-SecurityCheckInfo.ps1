@@ -29,7 +29,7 @@
 
     $dtable = $Result | Out-DataTable;    
 
-    $cn = new-object System.Data.SqlClient.SqlConnection("Data Source=$InventoryInstance;Integrated Security=SSPI;Initial Catalog=$InventoryDatabase");
+    $cn = new-object System.Data.SqlClient.SqlConnection("Data Source=$sdtInventoryInstance;Integrated Security=SSPI;Initial Catalog=$sdtInventoryDatabase");
     $cn.Open();
 
     $bc = new-object ("System.Data.SqlClient.SqlBulkCopy") $cn;

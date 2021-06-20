@@ -2,12 +2,12 @@
 
 Import-Module SQLDBATools -DisableNameChecking;
 
-$ExecutionLogsFile = "$SQLDBATools_ResultsDirectory\Logs\Get-DatabaseBackupInfo\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-DatabaseBackupInfo\___ExecutionLogs.txt";
 
 
 $instancesquery ="SELECT InstanceName FROM Info.Instance WHERE IsDecommissioned = 0";
-#$instances = Invoke-Sqlcmd -Query $instancesquery -ServerInstance $InventoryInstance -Database $InventoryDatabase #-ConnectionTimeout 0 -QueryTimeout 0
-$instances = Execute-SqlQuery -Query $instancesquery -ServerInstance $InventoryInstance -Database $InventoryDatabase;
+#$instances = Invoke-Sqlcmd -Query $instancesquery -ServerInstance $sdtInventoryInstance -Database $sdtInventoryDatabase #-ConnectionTimeout 0 -QueryTimeout 0
+$instances = Execute-SqlQuery -Query $instancesquery -ServerInstance $sdtInventoryInstance -Database $sdtInventoryDatabase;
 $servers = @($instances | select -ExpandProperty InstanceName);
 
 

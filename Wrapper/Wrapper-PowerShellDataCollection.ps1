@@ -1,13 +1,13 @@
 ﻿Import-Module SQLDBATools -DisableNameChecking;
 
-#Set-Variable -Name InventoryInstance -Value 'BAN-1ADWIVEDI-L' -Scope Global;
-#Set-Variable -Name InventoryDatabase -Value 'DBServers_master' -Scope Global;
+#Set-Variable -Name sdtInventoryInstance -Value 'BAN-1ADWIVEDI-L' -Scope Global;
+#Set-Variable -Name sdtInventoryDatabase -Value 'DBServers_master' -Scope Global;
 
-#$InventoryInstance = 'BAN-1ADWIVEDI-L';
-#$InventoryDatabase = 'DBServers_master';
+#$sdtInventoryInstance = 'BAN-1ADWIVEDI-L';
+#$sdtInventoryDatabase = 'DBServers_master';
 
 $instancesquery ="select [Server/Instance Name] as InstanceName from [dbo].[Production]";
-$instances = Invoke-Sqlcmd -Query $instancesquery -ServerInstance $InventoryInstance -Database $InventoryDatabase #-ConnectionTimeout 0 -QueryTimeout 0
+$instances = Invoke-Sqlcmd -Query $instancesquery -ServerInstance $sdtInventoryInstance -Database $sdtInventoryDatabase #-ConnectionTimeout 0 -QueryTimeout 0
 $servers = @($instances | select -ExpandProperty InstanceName);
 
 #$servers = @($env:COMPUTERNAME);

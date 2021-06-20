@@ -2,10 +2,10 @@
 Import-Module dbatools;
 Import-Module SQLDBATools -DisableNameChecking;
 
-$global:LogErrorToInventoryTable = $true;
+$global:sdtLogErrorToInventoryTable = $true;
 
 $env:PSModulePath = $env:PSModulePath + ";" + "C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules\;C:\Program Files\MVPSI\Modules\";
-$ExecutionLogsFile = "$SQLDBATools_ResultsDirectory\Logs\Wrapper-ServerInfo\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Wrapper-ServerInfo\___ExecutionLogs.txt";
 
 $tsqlInventoryServers = @"
 select case when s.Domain = 'Corporate' then server+'.corporate.local'
@@ -23,7 +23,7 @@ from [TivoSQLInventory].dbo.Server s
 where Domain not in ('Armus','Angoss')
 "@;
 
-$Servers = Invoke-DbaQuery -SqlInstance $InventoryInstance -Query $tsqlInventoryServers;
+$Servers = Invoke-DbaQuery -SqlInstance $sdtInventoryInstance -Query $tsqlInventoryServers;
 $SuccessServers = @();
 $FailedServers = @();
 foreach($Server in $Servers)
@@ -101,7 +101,7 @@ $ErrorText
 "@ + $returnMessage;
         }
 
-        if($LogErrorToInventoryTable) {
+        if($sdtLogErrorToInventoryTable) {
             Add-CollectionError -ComputerName $Server.Server `
                                 -Cmdlet 'Wrapper-ServerInfo' `
                                 -CommandText $CommandText `
@@ -115,7 +115,7 @@ $ErrorText
     }
 }
 
-$global:LogErrorToInventoryTable = $false;
+$global:sdtLogErrorToInventoryTable = $false;
 
 $SuccessServers | ogv -Title "Successfully connected Servers"
 $FailedServers | ogv -Title "Servers with failed connection"

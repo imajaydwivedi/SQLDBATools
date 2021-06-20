@@ -4,7 +4,7 @@ Import-Module dbatools;
 Import-Module SQLDBATools -DisableNameChecking;
 Import-Module JAMS;
 
-$ExecutionLogsFile = "$SQLDBATools_ResultsDirectory\Logs\Wrapper-TestScript\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Wrapper-TestScript\___ExecutionLogs.txt";
 
 
 TRY 

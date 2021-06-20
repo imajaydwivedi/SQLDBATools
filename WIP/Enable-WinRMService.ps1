@@ -6,7 +6,7 @@ $tsqlInventoryServers = @"
 select ServerName from [SQLDBATools].[Staging].[CollectionErrors] as e with(nolock) where e.Command like '%Invoke-Command%'
 "@;
 
-$Servers = Invoke-DbaQuery -SqlInstance $InventoryInstance -Query $tsqlInventoryServers;
+$Servers = Invoke-DbaQuery -SqlInstance $sdtInventoryInstance -Query $tsqlInventoryServers;
 
 $CommandText = @();
 foreach($Server in $Servers)

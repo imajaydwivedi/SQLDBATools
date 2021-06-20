@@ -725,7 +725,7 @@ GO
     Write-Host "Opening generated script file '$ResultFile' with SSMS.";
     if ($Destination_SQLInstance -eq $null)
     {
-        $Destination_SQLInstance = $InventoryInstance;
+        $Destination_SQLInstance = $sdtInventoryInstance;
     }
     if (Test-Path $ResultFile)
     {

@@ -42,7 +42,7 @@
         [string] $Administrators = 'Corporate\SQL Admins',
 
         [Parameter(Mandatory=$false)]
-        [string] $SQL_Server_Setups = '\\tul1it1\it\SQL_Server_Setups\'
+        [string] $sdtSQL_Server_Setups = '\\tul1it1\it\sdtSQL_Server_Setups\'
     )
 
     $ConfigFile = "$PSScriptRoot\ConfigurationFile.ini";
@@ -74,8 +74,8 @@
     # Install .net Framework
     Write-Verbose "Validating dot net Framework feature..";
     if((Get-WindowsFeature Net-Framework-Core).Installed -eq $false) {
-        Install-WindowsFeature Net-Framework-Core -source "$($SQL_Server_Setups)dotNetFx40_Full_x86_x64.exe" | Out-Null;
-        Install-WindowsFeature Net-Framework-Core -source "$($SQL_Server_Setups)dotNetFx35setup.exe" | Out-Null;
+        Install-WindowsFeature Net-Framework-Core -source "$($sdtSQL_Server_Setups)dotNetFx40_Full_x86_x64.exe" | Out-Null;
+        Install-WindowsFeature Net-Framework-Core -source "$($sdtSQL_Server_Setups)dotNetFx35setup.exe" | Out-Null;
     }
 
     # If SQLServiceAccountPassword or SAPassword is not provided in parameter

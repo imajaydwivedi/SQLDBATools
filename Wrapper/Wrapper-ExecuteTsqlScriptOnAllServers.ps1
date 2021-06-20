@@ -5,7 +5,7 @@ $tQuery = @"
     select InstanceName  from Info.Instance
 "@;
 
-$Servers = Invoke-Sqlcmd -ServerInstance $InventoryInstance -Database $InventoryDatabase -Query $tQuery | Select-Object -ExpandProperty InstanceName;
+$Servers = Invoke-Sqlcmd -ServerInstance $sdtInventoryInstance -Database $sdtInventoryDatabase -Query $tQuery | Select-Object -ExpandProperty InstanceName;
 
 $Services = $Servers | Run-CommandMultiThreaded -Command "Get-Service" `
                             -InputParam 'ComputerName'
