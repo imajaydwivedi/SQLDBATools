@@ -2,8 +2,8 @@
     Module Name:-   SQLDBATools
     Created By:-    Ajay Kumar Dwivedi
     Email ID:-      ajay.dwivedi2007@gmail.com
-    Modified Date:- 10-June-2021
-    Version:-       0.0.2
+    Modified Date:- 20-June-2021
+    Version:-       0.0.3
 #>
 
 Push-Location;
@@ -29,12 +29,8 @@ if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbo
 # Set basic environment variables
 [string]$envFileBase = $null
 [string]$envFile = $null
-if($isWin) {
-    $envFileBase = Join-Path $modulePath "Functions\Set-EnvironmentVariables.ps1"
-} else {
-    $envFileBase = Join-Path $modulePath "Functions/Set-EnvironmentVariables.ps1"
-}
-$envFile = Join-Path $modulePath "Set-EnvironmentVariables.ps1"
+$envFileBase = Join-Path $functionsPath 'Set-SdtEnvironmentVariables.ps1'
+$envFile = Join-Path $modulePath "Set-SdtEnvironmentVariables.ps1"
 
 # First Load Environment Variables
 # File :Set-EnvironmentVariables.ps1" is also present inside Functions subdirectory with dummy values.
@@ -48,19 +44,14 @@ if(Test-Path $envFile) {
 }
 else {
     Copy-Item $envFileBase -Destination $modulePath | Out-Null;
-    Write-Output "Environment file 'Set-EnvironmentVariables.ps1' has been copied on '$envFileBase'.`nKindly modify the variable values according to your environment";
+    Write-Output "Environment file '$envFileBase' created.`nKindly modify the variable values according to your environment";
 }
 
 $M_dbatools = Get-Module -Name dbatools -ListAvailable -Verbose:$false;
 if([String]::IsNullOrEmpty($M_dbatools)) {
     Write-Output 'dbatools powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
     Write-Output "`tInstall-Module -Name dbatools -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
-} 
-<#
-else {
-    Import-Module dbatools -Global -Verbose:$false | Out-Null;
 }
-#>
 
 # Check for ActiveDirectory module
 if ( (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ActiveDirectory' }) -eq $null )
@@ -70,7 +61,7 @@ if ( (Get-Module -ListAvailable | Where-Object { $_.Name -eq 'ActiveDirectory' }
         Write-Host "====================================================";
         Write-Host "'ActiveDirectory' module is not installed." -ForegroundColor DarkRed;
         @"
-    ** So, few functions like 'Add-ApplicationInfo' might not work with this module. Kindly execute below Functions to import ActiveDirectory.
+    ** So, few functions like 'Add-SdtApplicationInfo' might not work with this module. Kindly execute below Functions to import ActiveDirectory.
 
         Install-Module ServerManager -Force;
         Add-WindowsFeature RSAT-AD-PowerShell;
