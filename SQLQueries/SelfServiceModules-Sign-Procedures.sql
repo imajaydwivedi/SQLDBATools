@@ -6,11 +6,11 @@
 USE master
 GO
 
-CREATE CERTIFICATE [CodeSigningCertificate]	ENCRYPTION BY PASSWORD = 'T!v0@2018' WITH EXPIRY_DATE = '2099-01-01' ,SUBJECT = 'DBA Code Signing Cert'
+CREATE CERTIFICATE [CodeSigningCertificate]	ENCRYPTION BY PASSWORD = 'Work@Y0urBest' WITH EXPIRY_DATE = '2099-01-01' ,SUBJECT = 'DBA Code Signing Cert'
 GO
 
 BACKUP CERTIFICATE [CodeSigningCertificate] TO FILE = 'C:\temp\CodeSigningCertificate.cer'
-	WITH PRIVATE KEY (FILE = 'C:\temp\CodeSigningCertificate_WithKey.pvk', ENCRYPTION BY PASSWORD = 'T!v0@2018', DECRYPTION BY PASSWORD = 'T!v0@2018' );
+	WITH PRIVATE KEY (FILE = 'C:\temp\CodeSigningCertificate_WithKey.pvk', ENCRYPTION BY PASSWORD = 'Work@Y0urBest', DECRYPTION BY PASSWORD = 'Work@Y0urBest' );
 GO
 
 CREATE LOGIN [CodeSigningLogin] FROM CERTIFICATE [CodeSigningCertificate];
@@ -27,8 +27,8 @@ GO
 
 CREATE CERTIFICATE [CodeSigningCertificate] FROM FILE = 'C:\temp\CodeSigningCertificate.cer'
 	WITH PRIVATE KEY (FILE = 'C:\temp\CodeSigningCertificate_WithKey.pvk',
-					  ENCRYPTION BY PASSWORD = 'T!v0@2018',
-					  DECRYPTION BY PASSWORD = 'T!v0@2018'
+					  ENCRYPTION BY PASSWORD = 'Work@Y0urBest',
+					  DECRYPTION BY PASSWORD = 'Work@Y0urBest'
 					  );
 GO
 
@@ -41,19 +41,19 @@ GO
 USE master
 go
 
-ADD SIGNATURE TO [dbo].[sp_Kill] BY CERTIFICATE [CodeSigningCertificate] WITH PASSWORD = 'T!v0@2018' -- 'Work@Y0urBest'
+ADD SIGNATURE TO [dbo].[sp_Kill] BY CERTIFICATE [CodeSigningCertificate] WITH PASSWORD = 'Work@Y0urBest' -- 'Work@Y0urBest'
 GO
 
 GRANT EXECUTE ON OBJECT::[dbo].[sp_Kill] TO [public]
 GO
 
-ADD SIGNATURE TO [dbo].[sp_WhoIsActive] BY CERTIFICATE [CodeSigningCertificate] WITH PASSWORD = 'T!v0@2018' -- 'Work@Y0urBest'
+ADD SIGNATURE TO [dbo].[sp_WhoIsActive] BY CERTIFICATE [CodeSigningCertificate] WITH PASSWORD = 'Work@Y0urBest' -- 'Work@Y0urBest'
 GO
 
 GRANT EXECUTE ON OBJECT::[dbo].[sp_WhoIsActive] TO [public]
 GO
 
-ADD SIGNATURE TO [dbo].[sp_HealthCheck] BY CERTIFICATE [CodeSigningCertificate] WITH PASSWORD = 'T!v0@2018' -- 'Work@Y0urBest'
+ADD SIGNATURE TO [dbo].[sp_HealthCheck] BY CERTIFICATE [CodeSigningCertificate] WITH PASSWORD = 'Work@Y0urBest' -- 'Work@Y0urBest'
 GO
 
 GRANT EXECUTE ON OBJECT::[dbo].[sp_HealthCheck] TO [public]
@@ -65,7 +65,7 @@ GO
 GRANT CONNECT TO [guest]
 GO
 
-ADD SIGNATURE TO [dbo].[usp_WhoIsActive_Blocking] BY CERTIFICATE [CodeSigningCertificate] WITH PASSWORD = 'T!v0@2018' -- 'Work@Y0urBest'
+ADD SIGNATURE TO [dbo].[usp_WhoIsActive_Blocking] BY CERTIFICATE [CodeSigningCertificate] WITH PASSWORD = 'Work@Y0urBest' -- 'Work@Y0urBest'
 GO
 
 GRANT EXECUTE ON OBJECT::[dbo].[usp_WhoIsActive_Blocking] TO [public]
