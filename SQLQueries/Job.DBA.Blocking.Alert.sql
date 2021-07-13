@@ -41,8 +41,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Send-Mai
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'EXEC DBA.[dbo].[usp_GetConsistentBlocking] 
-		@p_recipients = ''IT-Ops-DBA@tivo.com;DSG-ProductionSupport@tivo.com'',
-		--@p_recipients = ''ajay.dwivedi@tivo.com'',
+		@p_recipients = ''dba-group@YourOrg.com;application-team-group@YourOrg.com'',
+		--@p_recipients = ''ajay.dwivedi@YourOrg.com'',
 		@p_BlockingThresholdTime_Minutes = 20,
 		@p_Verbose = 0', 
 		@database_name=N'DBA', 

@@ -51,7 +51,7 @@ set @Body = ''[DBA - IndexOptimize_Modified - All Databases] has started @''+cas
 set @subject = ''[DBA - IndexOptimize_Modified - All Databases] has started @''+cast(getdate() as varchar(50));
 EXEC msdb.dbo.sp_send_dbmail  
     @profile_name = @@SERVERNAME,  
-    @recipients = ''it-ops-sqldba@tivo.com'',  
+    @recipients = ''it-ops-sqldba@YourOrg.com'',  
     @body = @Body,
     @subject = @Subject;', 
 		@database_name=N'master', 
@@ -124,7 +124,7 @@ set @Body = ''[DBA - IndexOptimize_Modified - All Databases] has finished @''+ca
 set @subject = ''[DBA - IndexOptimize_Modified - All Databases] has finished @''+cast(getdate() as varchar(50));
 EXEC msdb.dbo.sp_send_dbmail  
     @profile_name = @@SERVERNAME,  
-    @recipients = ''it-ops-sqldba@tivo.com'',   
+    @recipients = ''it-ops-sqldba@YourOrg.com'',   
     @body = @Body,
     @subject = @Subject;', 
 		@database_name=N'master', 

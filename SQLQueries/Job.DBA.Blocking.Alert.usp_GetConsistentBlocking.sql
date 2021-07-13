@@ -6,7 +6,7 @@ IF OBJECT_ID('dbo.usp_GetConsistentBlocking') IS NULL
 GO
 
 ALTER PROCEDURE [dbo].[usp_GetConsistentBlocking] 
-		@p_recipients VARCHAR(1000) = 'IT-Ops-DBA@tivo.com;DSG-ProductionSupport@tivo.com',
+		@p_recipients VARCHAR(1000) = 'dba-group@YourOrg.com;application-team-group@YourOrg.com',
 		@p_BlockingThresholdTime_Minutes INT = 20,
 		@p_Verbose BIT = 0,
 		@p_Help BIT = 0
@@ -292,8 +292,8 @@ BEGIN
 
 		IF (@p_recipients IS NULL) 
 		BEGIN
-			SET @p_recipients = 'IT-Ops-DBA@tivo.com;DSG-ProductionSupport@tivo.com';
-			--SET @p_recipients = 'ajay.dwivedi@tivo.com';
+			SET @p_recipients = 'dba-group@YourOrg.com;application-team-group@YourOrg.com';
+			--SET @p_recipients = 'ajay.dwivedi@YourOrg.com';
 		END
 
 		EXEC msdb.dbo.sp_send_dbmail 

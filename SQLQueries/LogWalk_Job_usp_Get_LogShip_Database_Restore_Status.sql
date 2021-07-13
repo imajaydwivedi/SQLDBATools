@@ -40,7 +40,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'DBA..usp
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'EXEC DBA..usp_Get_LogShip_Database_Restore_Status @threshold_hours = 24, @recipients = ''ajay.dwivedi@tivo.com; renuka.chopra@tivo.com'';', 
+		@command=N'EXEC DBA..usp_Get_LogShip_Database_Restore_Status @threshold_hours = 24, @recipients = ''ajay.dwivedi@YourOrg.com; renuka.chopra@YourOrg.com'';', 
 		@database_name=N'master', 
 		@flags=8
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback

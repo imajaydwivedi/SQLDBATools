@@ -66,7 +66,7 @@ BEGIN
 			@sunday_pager_start_time=90000, 
 			@sunday_pager_end_time=180000, 
 			@pager_days=0, 
-			@email_address=N'IT-Ops-DBA@tivo.com', 
+			@email_address=N'dba-group@YourOrg.com', 
 			@category_name=N'[Uncategorized]'
 END
 GO

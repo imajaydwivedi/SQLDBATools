@@ -308,10 +308,10 @@
 
 Copy-DatabaseTables -SourceServerName 'tul1dbapmtdb1' `
                     -SourceInstanceName 'SQL2016' `
-                    -SourceDatabaseName 'TivoSQLInventory' `
+                    -SourceDatabaseName 'YourOrgSQLInventory' `
                     -SourceSchemaName 'dbo' `
                     -DestinationServerName 'tul1dbapmtdb1' `
-                    -DestinationDatabaseName 'TivoSQLInventory' `
+                    -DestinationDatabaseName 'YourOrgSQLInventory' `
                     -DestinationSchemaName 'dbo' `
                     -WorkingDirectory 'c:\temp\migration' `
                     -REBUILD

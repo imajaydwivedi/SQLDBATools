@@ -22,7 +22,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'DBA Log Walk - Restore AjayD
 		@delete_level=0, 
 		@description=N'Job created using below powershell cmdlet from SQLDBATools:-
 
-Setup-TivoDbaLogWalk', 
+Setup-YourOrgDbaLogWalk', 
 		@category_name=N'Log Shipping', 
 		@owner_login_name=N'sa', 
 		@notify_email_operator_name=N'DBAGroup', @job_id = @jobId OUTPUT

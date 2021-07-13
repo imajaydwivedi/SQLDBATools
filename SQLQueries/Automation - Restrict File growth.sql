@@ -14,7 +14,7 @@ GO
 ALTER PROCEDURE [dbo].[usp_AnalyzeSpaceCapacity]
 	@getInfo TINYINT = 0, @getLogInfo TINYINT = 0, @help TINYINT = 0, @addDataFiles TINYINT = 0, @addLogFiles TINYINT = 0, @restrictDataFileGrowth TINYINT = 0, @restrictLogFileGrowth TINYINT = 0, @generateCapacityException TINYINT = 0, @unrestrictFileGrowth TINYINT = 0, @removeCapacityException TINYINT = 0, @UpdateMountPointSecurity TINYINT = 0, @restrictMountPointGrowth TINYINT = 0, @expandTempDBSize TINYINT = 0, @optimizeLogFiles TINYINT = 0,
 	@newVolume VARCHAR(50) = NULL, @oldVolume VARCHAR(50) = NULL, @mountPointGrowthRestrictionPercent TINYINT = 79, @tempDBMountPointPercent TINYINT = 89, @DBs2Consider VARCHAR(1000) = NULL, @mountPointFreeSpaceThreshold_GB INT = 60
-	,@verbose TINYINT = 0 ,@testAllOptions TINYINT = 0 ,@forceExecute TINYINT = 0 ,@allowMultiVolumeUnrestrictedFiles TINYINT = 0 ,@output4IdealScenario TINYINT = 0
+	,@verbose TINYINT = 0 ,@testAllOptions TINYINT = 0 ,@forceExecute TINYINT = 0 ,@allowMulYourOrglumeUnrestrictedFiles TINYINT = 0 ,@output4IdealScenario TINYINT = 0
 AS
 BEGIN
 	/*
@@ -848,12 +848,12 @@ DECLARE		@_logicalCores TINYINT
 				END
 
 				/* By default, if another unrestricted file exists in any other volume, then don't create files for that db */
-				IF @allowMultiVolumeUnrestrictedFiles = 1
+				IF @allowMulYourOrglumeUnrestrictedFiles = 1
 				BEGIN
 					IF	@_LogOrData = 'Log'
 					BEGIN
 						IF @verbose = 1
-							PRINT	'	Updating #T_Files_Derived table for @allowMultiVolumeUnrestrictedFiles option.';
+							PRINT	'	Updating #T_Files_Derived table for @allowMulYourOrglumeUnrestrictedFiles option.';
 						UPDATE	fo
 						SET		isExisting_UnrestrictedGrowth_on_OtherVolume = 0
 						FROM	#T_Files_Derived AS fo
@@ -1584,7 +1584,7 @@ DECLARE		@_logicalCores TINYINT
 				--
 				UNION ALL
 					--
-				SELECT	'@allowMultiVolumeUnrestrictedFiles','TINYINT','0','All creation of multiple data/log files with unrestricted growth on multiple volumes.'
+				SELECT	'@allowMulYourOrglumeUnrestrictedFiles','TINYINT','0','All creation of multiple data/log files with unrestricted growth on multiple volumes.'
 				--
 				UNION ALL
 					--
@@ -1607,7 +1607,7 @@ DECLARE		@_logicalCores TINYINT
 												|
 												@addDataFiles = { 1 | 0 } ,@newVolume = <drive_name>, @oldVolume = <drive_name> [,@DBs2Consider = <comma separated database names>] [,@forceExecute = 1] 
 												|
-												@addLogFiles = { 1 | 0 } ,@newVolume = <drive_name>, @oldVolume = <drive_name> [,@allowMultiVolumeUnrestrictedFiles = 1] [,@DBs2Consider = <comma separated database names>] [,@forceExecute = 1] 
+												@addLogFiles = { 1 | 0 } ,@newVolume = <drive_name>, @oldVolume = <drive_name> [,@allowMulYourOrglumeUnrestrictedFiles = 1] [,@DBs2Consider = <comma separated database names>] [,@forceExecute = 1] 
 												|
 												@restrictDataFileGrowth = { 1 | 0 } ,@oldVolume = <drive_name> [,@DBs2Consider = <comma separated database names>] [,@forceExecute = 1]
 												|
@@ -1663,8 +1663,8 @@ DECLARE		@_logicalCores TINYINT
 		EXEC [dbo].[usp_AnalyzeSpaceCapacity] @addLogFiles = 1 ,@newVolume = ''E:\Logs1\'' ,@oldVolume = ''E:\Logs\''
 		EXEC [dbo].[usp_AnalyzeSpaceCapacity] @addLogFiles = 1 ,@newVolume = ''E:\Logs1\'' ,@oldVolume = ''E:\Logs\'' ,@DBs2Consider = ''unet, Test1Db, MirrorTestDB'';
 		EXEC [dbo].[usp_AnalyzeSpaceCapacity] @addLogFiles = 1 ,@newVolume = ''E:\Logs1\'' ,@oldVolume = ''E:\Logs\'' ,@forceExecute = 1
-		EXEC [dbo].[usp_AnalyzeSpaceCapacity] @addLogFiles = 1 ,@newVolume = ''E:\Logs1\'' ,@oldVolume = ''E:\Logs\'' ,@allowMultiVolumeUnrestrictedFiles = 1
-		EXEC [dbo].[usp_AnalyzeSpaceCapacity] @addLogFiles = 1 ,@newVolume = ''E:\Logs1\'' ,@oldVolume = ''E:\Logs\'' ,@allowMultiVolumeUnrestrictedFiles = 1 ,@forceExecute = 1
+		EXEC [dbo].[usp_AnalyzeSpaceCapacity] @addLogFiles = 1 ,@newVolume = ''E:\Logs1\'' ,@oldVolume = ''E:\Logs\'' ,@allowMulYourOrglumeUnrestrictedFiles = 1
+		EXEC [dbo].[usp_AnalyzeSpaceCapacity] @addLogFiles = 1 ,@newVolume = ''E:\Logs1\'' ,@oldVolume = ''E:\Logs\'' ,@allowMulYourOrglumeUnrestrictedFiles = 1 ,@forceExecute = 1
 
 		This generates TSQL Code for add log files on @newVolume for each database on @oldVolume.
 

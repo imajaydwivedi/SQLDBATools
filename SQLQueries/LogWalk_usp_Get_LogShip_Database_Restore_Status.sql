@@ -5,7 +5,7 @@ IF OBJECT_ID('dbo.usp_Get_LogShip_Database_Restore_Status') IS NULL
 	EXEC ('CREATE PROCEDURE dbo.usp_Get_LogShip_Database_Restore_Status AS SELECT 1 as Dummy;')
 GO
 	
-ALTER PROCEDURE dbo.usp_Get_LogShip_Database_Restore_Status @recipients VARCHAR(2000) = 'ajay.dwivedi@tivo.com; renuka.chopra@tivo.com', @threshold_hours int = 24
+ALTER PROCEDURE dbo.usp_Get_LogShip_Database_Restore_Status @recipients VARCHAR(2000) = 'ajay.dwivedi@YourOrg.com; renuka.chopra@YourOrg.com', @threshold_hours int = 24
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -92,7 +92,7 @@ BEGIN
 <p><br>
 Thanks & Regards,<br>
 SQL Alerts<br>
-It-Ops-DBA@tivo.com<br>
+dba-group@YourOrg.com<br>
 -- Alert Coming from SQL Agent Job [DBA Log Walk Alerts]<br>
 </p>
 '

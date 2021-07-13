@@ -244,7 +244,7 @@ BEGIN
 			@sunday_pager_start_time=90000, 
 			@sunday_pager_end_time=180000, 
 			@pager_days=0, 
-			@email_address=N'IT-Ops-SQLDBA@tivo.com', 
+			@email_address=N'IT-Ops-SQLDBA@YourOrg.com', 
 			@category_name=N'[Uncategorized]'
 END
 GO
@@ -672,7 +672,7 @@ BEGIN
 <br><br>
 Thanks & Regards,<br>
 SQL Alerts<br>
-It-Ops-DBA@tivo.com<br>
+dba-group@YourOrg.com<br>
 -- Alert Coming from SQL Agent Job [DBA Log Walk Alerts]<br>
 </p>
 ';
@@ -683,7 +683,7 @@ It-Ops-DBA@tivo.com<br>
 
 	IF (@p_recipients IS NULL) 
 	BEGIN
-		SET @p_recipients = 'ajay.dwivedi@tivo.com';
+		SET @p_recipients = 'ajay.dwivedi@YourOrg.com';
 	END
 
 	EXEC msdb.dbo.sp_send_dbmail 
@@ -707,7 +707,7 @@ ALTER PROCEDURE [dbo].[usp_GetLogWalkJobHistoryAlert_Suppress]
 		@p_SendMail BIT = 0,
 		@p_Mail_TO VARCHAR(1000) = NULL,
 		@p_Mail_CC VARCHAR(1000) = NULL,
-		@p_SlackMailID VARCHAR(1000) = 'k2b0c1w9g1k7d5e0@tivo.slack.com;IT-Ops-DBA@tivo.com;',
+		@p_SlackMailID VARCHAR(1000) = 'k2b0c1w9g1k7d5e0@YourOrg.slack.com;dba-group@YourOrg.com;',
 		@p_Help BIT = 0
 AS
 BEGIN 
@@ -1049,7 +1049,7 @@ DELETE FROM DBA..LogWalkThresholdInstance WHERE JobName = '''+@p_JobName+''';
 
 						IF @p_SendMail = 1
 						BEGIN
-							-- From -> SQL Alerts - TUL1CIPRDB1 <SQLAlerts@tivo.com>
+							-- From -> SQL Alerts - TUL1CIPRDB1 <SQLAlerts@YourOrg.com>
 
 							IF @p_Verbose = 1
 								PRINT 'Trying to find blockers..';
@@ -1225,7 +1225,7 @@ Kindly check Job Step Error Message'
 
 Thanks & Regards,
 SQL Alerts
-It-Ops-DBA@tivo.com
+dba-group@YourOrg.com
 -- Alert Coming from SQL Agent Job [DBA Log Walk Alerts]
 		';
 

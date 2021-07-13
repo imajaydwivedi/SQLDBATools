@@ -2,7 +2,7 @@
 --Created Date:	09-Feb-2018
 --Updated Date:	09-Feb-2018
 --Version:		0.0
---Purpose:		Create/Update Mail Profile in TiVo SQL Server Environments
+--Purpose:		Create/Update Mail Profile in YourOrg SQL Server Environments
 
 SET NOCOUNT ON;
 
@@ -42,7 +42,7 @@ BEGIN
 END
 IF NOT EXISTS (SELECT * FROM @ProfilesAccounts as a WHERE a.profile_name = @@SERVERNAME AND a.account_name = 'SQLAlerts')
 	OR EXISTS (SELECT * FROM @ProfilesAccounts as a WHERE a.profile_name = @@SERVERNAME AND sequence_number = 1 AND a.account_name <> 'SQLAlerts')
-	OR NOT EXISTS(SELECT * FROM msdb..sysmail_account a WHERE a.name = 'SQLAlerts' AND a.email_address = 'SQLAlerts@tivo.com' AND a.display_name = @DisplayName)
+	OR NOT EXISTS(SELECT * FROM msdb..sysmail_account a WHERE a.name = 'SQLAlerts' AND a.email_address = 'SQLAlerts@YourOrg.com' AND a.display_name = @DisplayName)
 BEGIN
 	-- Create Database Mail account for SQLAlerts if NOT EXISTS
 	IF NOT EXISTS (SELECT * FROM [msdb]..[sysmail_account] as a WHERE a.name = 'SQLAlerts')
@@ -52,8 +52,8 @@ BEGIN
 		EXECUTE msdb.dbo.sysmail_add_account_sp  
 			@account_name = 'SQLAlerts',  
 			@description = 'Mail account for alerts',  
-			@email_address = 'SQLAlerts@tivo.com',--'SQLAlerts@RoviCorp.com',  
-			@replyto_address = 'IT-Ops-DBA@tivo.com',  
+			@email_address = 'SQLAlerts@YourOrg.com',--'SQLAlerts@RoviCorp.com',  
+			@replyto_address = 'dba-group@YourOrg.com',  
 			@display_name = @DisplayName,  
 			@mailserver_name = 'relay.corporate.local';
 	END
@@ -61,13 +61,13 @@ BEGIN
 	BEGIN
 		IF @verbose = 1
 			PRINT 'EXECUTE msdb.dbo.sysmail_update_account_sp'
-		IF NOT EXISTS(SELECT * FROM msdb..sysmail_account a WHERE a.name = 'SQLAlerts' AND a.email_address = 'SQLAlerts@tivo.com' AND a.display_name = @DisplayName)
+		IF NOT EXISTS(SELECT * FROM msdb..sysmail_account a WHERE a.name = 'SQLAlerts' AND a.email_address = 'SQLAlerts@YourOrg.com' AND a.display_name = @DisplayName)
 		BEGIN		
 			EXECUTE msdb.dbo.sysmail_update_account_sp  
 					 @account_name = 'SQLAlerts',  
 					@description = 'Mail account for alerts',  
-					@email_address = 'SQLAlerts@tivo.com',--'SQLAlerts@RoviCorp.com',  
-					@replyto_address = 'IT-Ops-DBA@tivo.com',  
+					@email_address = 'SQLAlerts@YourOrg.com',--'SQLAlerts@RoviCorp.com',  
+					@replyto_address = 'dba-group@YourOrg.com',  
 					@display_name = @DisplayName,  
 					@mailserver_name = 'relay.corporate.local'; 
 		END
@@ -138,8 +138,8 @@ END
 -- Test Mail Profile by Sending Dummy Mail
 	EXEC msdb.dbo.sp_send_dbmail  
 		@profile_name = @@SERVERNAME,  
-		@recipients = 'ajay.dwivedi@tivo.com',  
-		--@copy_recipients = 'IT-Ops-DBA@tivo.com',
+		@recipients = 'ajay.dwivedi@YourOrg.com',  
+		--@copy_recipients = 'dba-group@YourOrg.com',
 		@body = 'This is Test Mail. Kindly verify the EMail Account and Display Name.',  
 		@subject = 'Test Mail for New SQLAlerts Account' ;
 

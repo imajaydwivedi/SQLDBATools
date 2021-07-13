@@ -7,7 +7,7 @@
 ###############################################
 # Configure variable below, you will be prompted for your SNOW login
 ###############################################
-$SNOWURL = "https://tivo.service-now.com/"
+$SNOWURL = "https://YourOrg.service-now.com/"
 ################################################################################
 # Nothing to configure below this line - Starting the main function 
 ################################################################################

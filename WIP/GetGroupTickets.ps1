@@ -6,7 +6,7 @@ $date = (get-date).tostring('g')
 [string]$user = 'rharrington_ps'
 [string]$password = get-content $pwpath
 
-[string]$instance = 'Tivo'
+[string]$instance = 'YourOrg'
 
 #// Set Instance 
 $InstanceName = "https://"+$Instance+".service-now.com/" 
@@ -49,9 +49,9 @@ foreach ($item in $Results) {
     $Openedby = get-aduser -identity $item.sys_created_by |select -ExpandProperty name
     $ReqURLbase =  ''
     if($item.number -like "RIT*")
-    {$ReqURLbase = "https://tivo.service-now.com/nav_to.do?uri=sc_req_item.do?sys_id="}
+    {$ReqURLbase = "https://YourOrg.service-now.com/nav_to.do?uri=sc_req_item.do?sys_id="}
     if($item.number -like "INC*")
-    {$ReqURLbase = "https://tivo.service-now.com/nav_to.do?uri=incident.do?sys_id="}
+    {$ReqURLbase = "https://YourOrg.service-now.com/nav_to.do?uri=incident.do?sys_id="}
     $ReqURLFull = ''
     $ReqURLFull = $ReqURLbase+$item.sys_id
     '<a href=' +$requrlfull +'><b>' + $item.number + '</b></a><br><br>'|out-file $outputhtml -append

@@ -19,7 +19,7 @@ select case when s.Domain = 'Corporate' then server+'.corporate.local'
 					 else null
 				end as ServerType, 
             s.ShortDescription 
-from [TivoSQLInventory].dbo.Server s
+from [YourOrgSQLInventory].dbo.Server s
 where Domain not in ('Armus','Angoss')
 "@;
 
