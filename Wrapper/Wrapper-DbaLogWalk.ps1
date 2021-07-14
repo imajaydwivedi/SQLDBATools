@@ -3,7 +3,7 @@ Remove-Module SQLDBATools -ErrorAction SilentlyContinue;
 Import-Module SQLDBATools -DisableNameChecking;
 #>
 cls
-$SourceDatabases_DS12 = @('AMG_AVG','AMG_Extra','AMG_Music','AMG_MusicMore','Babel','DSG_EU','Facebook','Mosaic','MuzeUK','MuzeUS','MuzeVideo','Prism','RGS','RCM_rovicore_20130710_NoMusic1a_en-US','Sky','Staging','Staging2','Twitter','TVGolConfigs','UKVideo');
+$SourceDatabases_DS12 = @('AMG_AVG','AMG_Extra','AMG_Music','AMG_MusicMore','Babel','DSG_EU','Facebook','Mosaic','MuzeUK','MuzeUS','MuzeVideo','Prism','RGS','RCM_morecore_20130710_NoMusic1a_en-US','Sky','Staging','Staging2','Twitter','TVGolConfigs','UKVideo');
 foreach($SourceDb in $SourceDatabases_DS12)
 {
     Setup-DbaLogWalk -SourceServer TUL1MDPDWMID01 -SourceDbName $SourceDb -DestinationServer TUL1MDPDWDS12 -GenerateRESTOREScriptOnly;

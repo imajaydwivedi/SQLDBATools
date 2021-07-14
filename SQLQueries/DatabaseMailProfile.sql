@@ -52,7 +52,7 @@ BEGIN
 		EXECUTE msdb.dbo.sysmail_add_account_sp  
 			@account_name = 'SQLAlerts',  
 			@description = 'Mail account for alerts',  
-			@email_address = 'SQLAlerts@YourOrg.com',--'SQLAlerts@RoviCorp.com',  
+			@email_address = 'SQLAlerts@YourOrg.com',--'SQLAlerts@YourCompany.com',  
 			@replyto_address = 'dba-group@YourOrg.com',  
 			@display_name = @DisplayName,  
 			@mailserver_name = 'relay.corporate.local';
@@ -66,7 +66,7 @@ BEGIN
 			EXECUTE msdb.dbo.sysmail_update_account_sp  
 					 @account_name = 'SQLAlerts',  
 					@description = 'Mail account for alerts',  
-					@email_address = 'SQLAlerts@YourOrg.com',--'SQLAlerts@RoviCorp.com',  
+					@email_address = 'SQLAlerts@YourOrg.com',--'SQLAlerts@YourCompany.com',  
 					@replyto_address = 'dba-group@YourOrg.com',  
 					@display_name = @DisplayName,  
 					@mailserver_name = 'relay.corporate.local'; 

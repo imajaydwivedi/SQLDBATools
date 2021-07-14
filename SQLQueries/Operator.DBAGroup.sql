@@ -9,7 +9,7 @@ BEGIN
 			@sunday_pager_start_time=90000, 
 			@sunday_pager_end_time=180000, 
 			@pager_days=0, 
-			@email_address=N'dba-group@rovicorp.com', 
+			@email_address=N'dba-group@YourCompany.com', 
 			@category_name=N'[Uncategorized]'
 END
 
