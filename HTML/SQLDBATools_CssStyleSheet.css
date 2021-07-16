@@ -1,0 +1,44 @@
+﻿@import url("https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css");
+
+
+
+th {
+    font-weight:bold;
+    color:white;
+    background-color:black;
+}
+
+.Even {
+    background-color:#eee;
+}
+
+.Odd {
+    background-color:#E4DDDB;
+}
+
+.ScriptOut {
+    display: none;
+}
+
+h2 {
+    cursor: pointer;
+}
+
+h2:hover {
+    color: blue;
+}
+
+.dataTable {
+    border: 1px solid black;
+}
+
+.paginate_enabled_next, .paginate_enabled_previous {
+    padding: 10px;
+    color: blue;
+    cursor: pointer;
+}
+
+.paginate_disabled_next, .paginate_disabled_previous {
+    padding: 10px;
+    color: #696969;
+}
