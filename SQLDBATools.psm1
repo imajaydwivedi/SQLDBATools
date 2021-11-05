@@ -97,6 +97,7 @@ foreach($file in Get-ChildItem -Path $SdtFunctionsPath) {
 Push-Location;
 
 <#
+Get-Variable Sdt* | Remove-Variable
 Remove-Module SQLDBATools,dbatools,SqlServer -ErrorAction SilentlyContinue;
 Import-Module SQLDBATools -DisableNameChecking
 #>
