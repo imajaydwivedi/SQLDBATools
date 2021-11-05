@@ -87,7 +87,7 @@ FunctionsToExport = @('Add-SdtApplicationInfo','Add-SdtCollectionError','Add-Sdt
                         'Grant-SdtSqlAccountRequiredPrivileges','Install-SdtOlaHallengrenMaintenanceScripts',
                         'Install-SdtSqlInstance','Invoke-SdtCommandMultiThreaded','Invoke-Sdtsp_WhoIsActive',
                         'Invoke-SdtSqlQuery','Invoke-SdtTsqlScript','Join-SdtObject','Optimize-SdtModelDatabase',
-                        'Out-SdtDataTable','Reset-SdtOwnerShipToSystemAdministrators','Retry-SdtCommand','Select-SdtServerInfo',
+                        'Out-SdtDataTable','Raise-SdtAlert','Reset-SdtOwnerShipToSystemAdministrators','Retry-SdtCommand','Select-SdtServerInfo',
                         'Send-SdtSQLMail','Set-SdtBaselineWithWhoIsActive','Set-SdtBlockingAlert','Set-SdtDatabaseBackupJobs',
                         'Set-SdtDbaConfigurations','Set-SdtDbaLogWalk','Set-SdtDbaMailProfile','Set-SdtIndexOptimizeJobs',
                         'Set-SdtLogWalkAlert_with_ServiceBroker','Set-SdtOwner','Set-SdtSelfServiceModules','Set-SdtServerState',
