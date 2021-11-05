@@ -2,8 +2,8 @@
     Module Name:-   SQLDBATools
     Created By:-    Ajay Kumar Dwivedi
     Email ID:-      ajay.dwivedi2007@gmail.com
-    Modified Date:- 20-June-2021
-    Version:-       0.0.3
+    Modified Date:- 05-Nov-2021
+    Version:-       0.0.4
 #>
 
 Push-Location;
@@ -12,6 +12,8 @@ Push-Location;
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+Write-Verbose "Inside '$MyInvocation.MyCommand.Path'"
+
 # Check for OS version
 if([bool]($PSVersionTable.PSobject.Properties.name -match "Platform")) {
     [bool]$isWin = $PSVersionTable.Platform -match '^($|(Microsoft )?Win)'
@@ -19,19 +21,19 @@ if([bool]($PSVersionTable.PSobject.Properties.name -match "Platform")) {
 else {
     [bool]$isWin = $true
 }
-$modulePath = Split-Path $MyInvocation.MyCommand.Path -Parent;
-$functionsPath = Join-Path $modulePath 'Functions'
-$privatePath = Join-Path $modulePath 'Private'
-$DependenciesPath = Join-Path $modulePath 'Dependencies'
-$pathSeparator = if($isWin) {'\'} else {'/'}
+$global:SdtModulePath = Split-Path $MyInvocation.MyCommand.Path -Parent;
+$global:SdtFunctionsPath = Join-Path $SdtModulePath 'Functions'
+$global:SdtPrivatePath = Join-Path $SdtModulePath 'Private'
+$global:SdtDependenciesPath = Join-Path $SdtModulePath 'Dependencies'
+$global:SdtPathSeparator = if($isWin) {'\'} else {'/'}
 $verbose = $false;
 if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbose[:$false]
     $verbose = $PSBoundParameters.Get_Item('Verbose')
 }
 
 # Set basic environment variables
-$envFileBase = Join-Path $DependenciesPath 'Set-SdtEnvironmentVariables.ps1'
-$envFile = Join-Path $privatePath 'Set-SdtEnvironmentVariables.ps1'
+$envFileBase = Join-Path $SdtDependenciesPath 'Set-SdtEnvironmentVariables.ps1'
+$global:SdtEnvFile = Join-Path $SdtPrivatePath 'Set-SdtEnvironmentVariables.ps1'
 
 # First Load Environment Variables
 # File :Set-EnvironmentVariables.ps1" is also present inside Functions subdirectory with dummy values.
@@ -40,15 +42,15 @@ if($verbose) {
     Write-Host "'Environment Variables are being loaded from '$envFile'.." -ForegroundColor Yellow;
 }
 # If environment variable file present
-if(Test-Path $envFile) {
-    Invoke-Expression -Command $envFile;
+if(Test-Path $SdtEnvFile) {
+    Invoke-Expression -Command $SdtEnvFile;
 }
 else {
-    if(-not (Test-Path $privatePath)) {
-        [System.IO.Directory]::CreateDirectory($privatePath);
+    if(-not (Test-Path $SdtPrivatePath)) {
+        [System.IO.Directory]::CreateDirectory($SdtPrivatePath);
     }
-    Copy-Item $envFileBase -Destination $envFile | Out-Null;
-    Write-Output "Environment file '$envFile' created.`nKindly modify the variable values according to your environment";
+    Copy-Item $envFileBase -Destination $SdtEnvFile | Out-Null;
+    Write-Output "Environment file '$SdtEnvFile' created.`nKindly modify the variable values according to your environment";
 }
 
 $M_dbatools = Get-Module -Name dbatools -ListAvailable -Verbose:$false;
@@ -80,14 +82,14 @@ if($verbose) {
     Write-Host "====================================================";
     Write-Host "'Get-SqlServerProductKeys.psm1' Module is being loaded.." -ForegroundColor Yellow;
 }
-Import-Module -Name $(Join-Path $modulePath "ChildModules$($pathSeparator)Get-SqlServerProductKeys.psm1")
+Import-Module -Name $(Join-Path $SdtModulePath "ChildModules$($SdtPathSeparator)Get-SqlServerProductKeys.psm1")
 
 
 if($verbose) {
     Write-Host "====================================================";
     Write-Host "Loading other Functions.." -ForegroundColor Yellow;
 }
-foreach($file in Get-ChildItem -Path $functionsPath) {
+foreach($file in Get-ChildItem -Path $SdtFunctionsPath) {
     . ($file.FullName)
 }
 #Export-ModuleMember -Alias * -Function * -Cmdlet *
