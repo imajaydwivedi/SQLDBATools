@@ -140,7 +140,7 @@ PrivateData = @{
         # RequireLicenseAcceptance = $false
 
         # External dependent modules of this module
-        ExternalModuleDependencies = @('dbatools','ImportExcel','PoshRSJob','SqlServer')
+        ExternalModuleDependencies = @('dbatools','ImportExcel','PoshRSJob','SqlServer','EnhancedHTML2')
 
     } # End of PSData hashtable
 

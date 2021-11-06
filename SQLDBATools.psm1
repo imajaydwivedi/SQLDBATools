@@ -25,6 +25,7 @@ $global:SdtModulePath = Split-Path $MyInvocation.MyCommand.Path -Parent;
 $global:SdtFunctionsPath = Join-Path $SdtModulePath 'Functions'
 $global:SdtPrivatePath = Join-Path $SdtModulePath 'Private'
 $global:SdtDependenciesPath = Join-Path $SdtModulePath 'Dependencies'
+#$global:SdtLogsPath = Join-Path $SdtModulePath 'Logs'
 $global:SdtPathSeparator = if($isWin) {'\'} else {'/'}
 $verbose = $false;
 if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbose[:$false]
@@ -57,6 +58,24 @@ $M_dbatools = Get-Module -Name dbatools -ListAvailable -Verbose:$false;
 if([String]::IsNullOrEmpty($M_dbatools)) {
     Write-Output 'dbatools powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
     Write-Output "`tInstall-Module -Name dbatools -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
+}
+
+$M_PoshRSJob = Get-Module -Name PoshRSJob -ListAvailable -Verbose:$false;
+if([String]::IsNullOrEmpty($M_PoshRSJob)) {
+    Write-Output 'PoshRSJob powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
+    Write-Output "`tInstall-Module -Name PoshRSJob -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
+}
+
+$M_ImportExcel = Get-Module -Name ImportExcel -ListAvailable -Verbose:$false;
+if([String]::IsNullOrEmpty($M_ImportExcel)) {
+    Write-Output 'ImportExcel powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
+    Write-Output "`tInstall-Module -Name ImportExcel -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
+}
+
+$M_EnhancedHTML2 = Get-Module -Name EnhancedHTML2 -ListAvailable -Verbose:$false;
+if([String]::IsNullOrEmpty($M_EnhancedHTML2)) {
+    Write-Output 'EnhancedHTML2 powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
+    Write-Output "`tInstall-Module -Name EnhancedHTML2 -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
 }
 
 # Check for ActiveDirectory module
