@@ -3,6 +3,5 @@ robocopy "C:\Users\Public\Documents\GitHub\SQLDBATools\" "C:\Users\Public\Docume
 Import-Module SQLDBATools -DisableNameChecking
 
 Get-Variable Sdt* | Remove-Variable
-Remove-Module SQLDBATools 
+Remove-Module SQLDBATools
 
-Get-Module -Name SQLDBATools | SELECT *

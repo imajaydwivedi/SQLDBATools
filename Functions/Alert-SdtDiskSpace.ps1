@@ -17,6 +17,8 @@
         [string[]]$EmailTo = @($SdtDBAMailId)
     )
 
+    $isCustomError = $false
+
     # Start Actual Work
     $blockDbaDiskSpace = {
         $ComputerName = $_
@@ -85,10 +87,6 @@
         #throw $errMessage
     }
     $jobs | Remove-RSJob -Verbose:$false
-
-    if($isCustomError) {
-        throw $errMessage
-    }
 
     $jobsResultFiltered = @()
     $jobsResultFiltered += $jobsResult | Where-Object {$_.PercentUsed -ge $WarningThresholdPercent}
@@ -199,6 +197,10 @@ th {
 
         if($criticalDisksCount -gt 0) { $priority = 'High' } else { $priority = 'Normal' }
         Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority $priority -BodyAsHtml
+    }
+
+    if($isCustomError) {
+        throw $errMessage
     }
 <#
 .SYNOPSIS 
