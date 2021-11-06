@@ -14,7 +14,9 @@
         [Parameter(Mandatory=$false)]
         [string]$ThresholdTable = 'dbo.sdt_disk_space_threshold',
         [Parameter(Mandatory=$false)]
-        [string[]]$EmailTo = @($SdtDBAMailId)
+        [string[]]$EmailTo = @($SdtDBAMailId),
+        [Parameter(Mandatory=$false)]
+        [int]$DelayMinutes = 60
     )
 
     $isCustomError = $false
@@ -91,6 +93,9 @@
     $jobsResultFiltered = @()
     $jobsResultFiltered += $jobsResult | Where-Object {$_.PercentUsed -ge $WarningThresholdPercent}
 
+    $subject = "Alert-SdtDiskSpace - $(Get-Date -format 'yyyy-MMM-dd')"
+    $footer = "<p>Report Generated @ $(Get-Date -format 'yyyy-MM-dd HH.mm.ss')</p>"
+
     if($jobsResultFiltered.Count -gt 0)
     {
         $jobsResultFiltered | Add-Member -MemberType ScriptProperty -Name "Severity" -Value { if($this.PercentUsed -ge $CriticalThresholdPercent) {'CRITICAL'} else {'WARNING'} }
@@ -98,8 +103,10 @@
         $alertResult = @()
         $alertResult += $jobsResultFiltered | Select-Object @{l='Server';e={$_.FriendlyName}}, @{l='DiskVolume';e={$_.Name}}, Severity, `
                                             @{l='FreePercent';e={"$($_.PercentFree) ($($_.Free)/$($_.Capacity))"}}, `
-                                            @{l='DashboardURL';e={$SdtInventoryInstance+':3000'}} 
-        #$alertResult | ft -AutoSize
+                                            @{l='DashboardURL';e={"$SdtGrafanaBaseURL"}} 
+        
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Below disk(s) are found with space issue - " | Write-Output
+        $alertResult | ft -AutoSize | Out-String
 
         $alertServers = @()
         $alertServers += $alertResult | Select-Object -ExpandProperty Server -Unique
@@ -113,72 +120,8 @@
         $warningDisks += $alertResult | Where-Object {$_.Severity -eq 'WARNING'}        
         $warningDisksCount = $warningDisks.Count
 
-        #$alertResult | select * | ogv
-        #Write-Debug "Got the result"
-
-        $subject = "Alert-SdtDiskSpace - $(if($serverCounts -gt 1){"$serverCounts Servers"}else{"[$alertServers]"}) $(if($criticalDisksCount -gt 0){"- $criticalDisksCount CRITICAL"}) $(if($warningDisksCount -gt 0){"- $warningDisksCount WARNINGS"})"
-        $css = $Header = @"
-        <style>
-        TABLE {border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse;}
-        TD {border-width: 1px; padding: 3px; border-style: solid; border-color: black;}
-        </style>
-"@
-        $style = @"
-<style>
-body {
-    color:#333333;
-    font-family:Calibri,Tahoma;
-    font-size: 10pt;
-}
-h1 {
-    text-align:center;
-}
-h2 {
-    border-top:1px solid #666666;
-}
-th {
-    font-weight:bold;
-    color:#eeeeee;
-    background-color:#333333;
-    cursor:pointer;
-}
-.odd  { background-color:#ffffff; }
-.even { background-color:#dddddd; }
-.paginate_enabled_next, .paginate_enabled_previous {
-    cursor:pointer; 
-    border:1px solid #222222; 
-    background-color:#dddddd; 
-    padding:2px; 
-    margin:4px;
-    border-radius:2px;
-}
-.paginate_disabled_previous, .paginate_disabled_next {
-    color:#666666; 
-    cursor:pointer;
-    background-color:#dddddd; 
-    padding:2px; 
-    margin:4px;
-    border-radius:2px;
-}
-.dataTables_info { margin-bottom:4px; }
-.sectionheader { cursor:pointer; }
-.sectionheader:hover { color:red; }
-.grid { width:100% }
-.red {
-    color:red;
-    font-weight:bold;
-}
-.yellow {
-    color:yellow;
-}
-.blue {
-    color:blue;
-}
-</style>
-"@
-        
-        $title = "<h2>$subject</h2>"
-        $content = $alertResult | Sort-Object -Property Severity, Server |  ConvertTo-Html -Fragment
+        $title = "<h2>Alert-SdtDiskSpace - $(if($serverCounts -gt 1){"$serverCounts Servers"}else{"[$alertServers]"}) $(if($criticalDisksCount -gt 0){"- $criticalDisksCount CRITICAL"}) $(if($warningDisksCount -gt 0){"- $warningDisksCount WARNING"})</h2>"
+        #$content = $alertResult | Sort-Object -Property Severity, Server |  ConvertTo-Html -Fragment
         $params = @{
                     'As'='Table';
                     'PreContent'= '<h3 class="blue">Disk Space Utilization</h3>';
@@ -186,17 +129,21 @@ th {
                     'OddRowCssClass' = 'odd';
                     'MakeTableDynamic' = $true;
                     'TableCssClass' = 'grid';
-                    'Properties' = 'Server', 'DiskVolume', 'Severity', @{n='Severity';e={$_.Severity};css={if ($_.Severity -eq 'CRITICAL') { 'red' }}},
+                    'Properties' = 'Server', 'DiskVolume', @{n='Severity';e={$_.Severity};css={if ($_.Severity -eq 'CRITICAL') { 'red' }}},
                                     'FreePercent', 'DashboardURL'
                 }
         $content = $alertResult | Sort-Object -Property Severity, Server | ConvertTo-EnhancedHTMLFragment @params
-
-        $footer = "<p>Report Generated @ $(Get-Date -format 'yyyy-MM-dd HH.mm.ss')</p>"
-
-        $body = "$style $title $content $footer" | Out-String
+        $body = "$SdtCssStyle $title $content $footer" | Out-String
 
         if($criticalDisksCount -gt 0) { $priority = 'High' } else { $priority = 'Normal' }
-        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority $priority -BodyAsHtml
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' to generate alert notification.." | Write-Output
+        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority $priority -BodyAsHtml -DelayMinutes $DelayMinutes
+    }
+    else {
+        $content = '<p style="color:blue">Alert has cleared. No action pending</p>'
+        $body = "$SdtCssStyle $content $footer" | Out-String
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","No space issue found. Calling 'Raise-SdtAlert' to clear active alert (if any).." | Write-Output
+        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority 'Normal' -BodyAsHtml -ClearAlert -DelayMinutes $DelayMinutes
     }
 
     if($isCustomError) {
