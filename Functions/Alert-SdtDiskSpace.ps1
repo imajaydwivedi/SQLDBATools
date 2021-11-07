@@ -20,12 +20,27 @@
     )
 
     $isCustomError = $false
+    <#
+    #$errMessage = @()
+
+    # Check for server connectivity
+    $servers = @()
+    $servers = $ComputerName
+    $ComputerName = @()
+    foreach($srv in $servers) {
+        if(Test-Connection $srv -Count 2) {
+        }
+    }
+    if(-not (Test-Connection $ComputerName -Count 2)) {
+        Write-Verbose "Servers are connecting"
+    }
+    #>
 
     # Start Actual Work
     $blockDbaDiskSpace = {
         $ComputerName = $_
         $FriendlyName = $ComputerName.Split('.')[0]
-        $r = Get-DbaDiskSpace -ComputerName $ComputerName
+        $r = Get-DbaDiskSpace -ComputerName $ComputerName -EnableException
         $r | Add-Member -NotePropertyName FriendlyName -NotePropertyValue $FriendlyName
         $r | Add-Member -MemberType ScriptProperty -Name "PercentUsed" -Value {[math]::Round((100.00 - $this.PercentFree), 2)}
         $r
@@ -68,11 +83,11 @@
 
     $jobs_exception = @()
     $jobs_exception += $jobs_timedout + $jobs_fail
+    [System.Collections.ArrayList]$jobErrMessages = @()
     if($jobs_exception.Count -gt 0 ) {   
         $alertHost = $jobs_exception | Select-Object -ExpandProperty Name -First 1
         $isCustomError = $true
         $errMessage = "`nBelow jobs either timed or failed-`n$($jobs_exception | Select-Object Name, State, HasErrors | Out-String)"
-        [System.Collections.ArrayList]$jobErrMessages = @()
         $failCount = $jobs_fail.Count
         $failCounter = 0
         foreach($job in $jobs_fail) {
@@ -93,7 +108,8 @@
     $jobsResultFiltered = @()
     $jobsResultFiltered += $jobsResult | Where-Object {$_.PercentUsed -ge $WarningThresholdPercent}
 
-    $subject = "Alert-SdtDiskSpace - $(Get-Date -format 'yyyy-MMM-dd')"
+    #$subject = "Alert-SdtDiskSpace - $(Get-Date -format 'yyyy-MMM-dd')"
+    $subject = "Alert-SdtDiskSpace"
     $footer = "<p>Report Generated @ $(Get-Date -format 'yyyy-MM-dd HH.mm.ss')</p>"
 
     if($jobsResultFiltered.Count -gt 0)
@@ -137,13 +153,13 @@
 
         if($criticalDisksCount -gt 0) { $priority = 'High' } else { $priority = 'Normal' }
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' to generate alert notification.." | Write-Output
-        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority $priority -BodyAsHtml -DelayMinutes $DelayMinutes
+        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority $priority -Severity High -BodyAsHtml -DelayMinutes $DelayMinutes
     }
     else {
         $content = '<p style="color:blue">Alert has cleared. No action pending</p>'
         $body = "$SdtCssStyle $content $footer" | Out-String
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","No space issue found. Calling 'Raise-SdtAlert' to clear active alert (if any).." | Write-Output
-        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority 'Normal' -BodyAsHtml -ClearAlert -DelayMinutes $DelayMinutes
+        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority 'Normal' -Severity High -BodyAsHtml -ClearAlert -DelayMinutes $DelayMinutes
     }
 
     if($isCustomError) {

@@ -78,7 +78,7 @@ FunctionsToExport = @('Add-SdtApplicationInfo','Add-SdtCollectionError','Add-Sdt
                         'Get-SdtAdUserInfo','Get-SdtBackupHistory','Get-SdtClusterInfo',
                         'Get-SdtDatabaseBackupInfo','Get-SdtDatabaseBackupInfo_SMO','Get-SdtDatabaseInfo',
                         'Get-SdtDatabasePermissions','Get-SdtDatabaseRestoreScript','Get-SdtDbaRestoreScript',
-                        'Get-SdtFullQualifiedDomainName','Get-SdtHBAWin','Get-SdtLinkedServer',
+                        'Get-SdtFullQualifiedDomainName','Get-SdtHBAWin','Get-SdtLinkedServer','Get-SdtLocalTime',
                         'Get-SdtMacAddress','Get-SdtMachineType','Get-SdtMSSQLLinkPasswords',
                         'Get-SdtOrphanDatabaseFiles','Get-SdtPassword4Account','Get-SdtPerfMonCounters','Get-SdtPingStatus',
                         'Get-SdtPowerPlanInfo','Get-SdtProcessForDBA','Get-SdtRebootHistory','Get-SdtRunningQueries',

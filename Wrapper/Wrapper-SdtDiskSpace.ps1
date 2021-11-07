@@ -2,7 +2,7 @@
 Param (
     [Parameter(Mandatory=$false)]
     [Alias('ServerName','MachineName')]
-    [string[]]$ComputerName = @($SdtInventoryInstance),
+    [string[]]$ComputerName,
     [Parameter(Mandatory=$false)]
     [string[]]$ExcludeDrive,
     [Parameter(Mandatory=$false)]
@@ -62,6 +62,16 @@ else {
 
 try
 {
+    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","ComputerName not provided." | Write-Output
+    if([String]::IsNullOrEmpty($ComputerName)) {
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Fetch list of servers from Inventory.." | Write-Output
+        $ComputerName = @()
+        $ComputerName += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+                                -Query "select * from $SdtInventoryTable where is_active = 1 and monitoring_enabled = 1;" `
+                                | Select-Object -ExpandProperty server;
+    }
+
+
     "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Execute Alert-SdtDiskSpace.." | Write-Output
     #1/0;
     Alert-SdtDiskSpace -ComputerName $ComputerName -DelayMinutes $DelayMinutes -WarningThresholdPercent $WarningThresholdPercent `

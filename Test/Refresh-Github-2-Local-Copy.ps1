@@ -8,3 +8,33 @@ Import-Module SQLDBATools -DisableNameChecking
 cls
 C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 -DelayMinutes 5 -Verbose -Debug
 
+cls
+$servers = @($SdtInventoryInstance,'SqlProd1')
+C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 -ComputerName $servers -DelayMinutes 5 -Verbose -Debug
+
+cls
+$servers = @($SdtInventoryInstance)
+Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 50 -CriticalThresholdPercent 85 -DelayMinutes 5 -Verbose -Debug
+
+if(-not (Test-Connection $servers -Count 2)) {
+    Write-Verbose "Servers are connecting"
+}
+
+<#
+use DBA
+go
+
+select GETDATE() as srv_time, GETUTCDATE() as utc_time, *
+from dbo.sdt_server_inventory
+go
+
+select DATEDIFF(minute,last_notified_date_utc,GETUTCDATE()) as last_notified_minutes, 
+		[is_suppressed_valid] = case when state = 'Suppressed' and (GETUTCDATE() between a.suppress_start_date_utc and a.suppress_end_date_utc) then 1 else 0 end,
+		*
+--update a set [state] = 'Suppressed', suppress_start_date_utc = GETUTCDATE(), suppress_end_date_utc = DATEADD(minute,20,GETUTCDATE())
+--update a set [state] = 'Suppressed', suppress_end_date_utc = DATEADD(minute,2,suppress_start_date_utc)
+from dbo.sdt_alert a with (nolock)
+where alert_key = 'Alert-SdtDiskSpace'
+go
+#>
+
