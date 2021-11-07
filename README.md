@@ -10,8 +10,10 @@ One way to work with this module is to simply download this github repository at
 
 It can also be installed easily from PSGallery using below command -
 
-`Install-Module -Name SQLDBATools
-`
+```
+Install-Module -Name SQLDBATools
+# Update-Module -Name SQLDBATools
+```
 
 Some of the common functionalities of this module are as follows -
 
