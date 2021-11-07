@@ -1,6 +1,10 @@
 # SQLDBATools
 Powershell Module containing cmdlets for carrying out SQL DBA activities. 
 
+**Functionality** covered includes finding our server properties, disk utilization, discover sql instance in network, find license keys, setup mail profile, setup dba operator, get backup history, audit user/database permissions, maintain inventory, cleanup orphan database files from disk, find resouce consuming queries on server, space consumers, estimate space to add into disk/database files, setup maintenance jobs, perform basic basic server optimization settings etc.
+
+This module also has built-in capability to setup **Monitoring & Alerting** system using PowerShell & SqlServer. The alerting system is designed to *automatically clear alerts* when no longer active, *send email notifications*, *suppress* alert is required, display *alert history* on Grafana. This available alerts include Disk Space, Blocking, Job Failure, High CPU, Memory Issue, and many more.
+
 ## How to Install
 One way to work with this module is to simply download this github repository at zip file, extract downloaded zip file, and extract it to folder named 'SQLDBATools'. Finally copy/paste it on one of the module folders returned by variable $PSGetPath.
 
@@ -10,6 +14,11 @@ It can also be installed easily from PSGallery using below command -
 `
 
 Some of the common functionalities of this module are as follows -
+
+## Get-SdtLinkedServer
+This function scripts out SQL Server Linked Servers with actual passwords into a script file.
+
+![](https://ajaydwivedi.com/wp-content/uploads/2021/06/image-3-1024x379.png)
 
 ## Get-SdtServerInfo
 This function returns basic information about machine(s) passed in pipeline or as value. This includes Operating System, Service Pack, LastBoot Time, Model, RAM & CPU for computer(s).
