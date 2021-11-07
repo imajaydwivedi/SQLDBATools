@@ -57,12 +57,15 @@ else {
 # Create Logs Directory
 if(-not (Test-Path $SdtLogsPath)) { [System.IO.Directory]::CreateDirectory($SdtLogsPath) | Out-Null }
 
+# Check for SqlServer PS Module
 $M_SqlServer = Get-Module -Name SqlServer -ListAvailable -Verbose:$false;
 if([String]::IsNullOrEmpty($M_SqlServer)) {
     Write-Output 'SqlServer powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
     Write-Output "`tInstall-Module -Name SqlServer -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
 }
-else {
+else { # If SqlServer PS Module is present, then check for required tables
+    
+    # $SdtInventoryTable
     $r = Invoke-Sqlcmd -ServerInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
                     -Query "select [exists] = convert(bit,(case when object_id('$SdtInventoryTable') is not null then 1 else 0 end));"
     if(-not $r.exists) {
@@ -96,6 +99,16 @@ go
     `n`n$SdtInventoryTableDefinitionSql`n"
             Write-Warning -Message $message;
         }
+    }
+
+    # $SdtAlertTable
+    $r = Invoke-Sqlcmd -ServerInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+                    -Query "select [exists] = convert(bit,(case when object_id('$SdtAlertTable') is not null then 1 else 0 end));"
+    if(-not $r.exists) {
+        $message = "Table '$SdtAlertTable' not found in [$SdtInventoryDatabase] database of [$SdtInventoryInstance] server.
+`nKindly create it in [$SdtInventoryInstance].[$SdtInventoryDatabase] database using below tsql -
+`n`n$SdtAlertTableDefinitionSql`n"
+        Write-Warning -Message $message;
     }
 }
 
