@@ -5,20 +5,26 @@ cls
 robocopy "C:\Users\Public\Documents\GitHub\SQLDBATools\" "C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\" /e /is /it /MT:4
 Import-Module SQLDBATools -DisableNameChecking
 
+Get-SdtServers -Verbose
+
 cls
-C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 -DelayMinutes 5 -Verbose -Debug
+C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 `
+        -DelayMinutes 2 -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
+        -Verbose -Debug
 
 cls
 $servers = @($SdtInventoryInstance,'SqlProd1')
-C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 -ComputerName $servers -DelayMinutes 5 -Verbose -Debug
+C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 `
+        -ComputerName $servers -DelayMinutes 2 `
+        -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
+        -Verbose -Debug
 
 cls
 $servers = @($SdtInventoryInstance)
 Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 50 -CriticalThresholdPercent 85 -DelayMinutes 5 -Verbose -Debug
 
-if(-not (Test-Connection $servers -Count 2)) {
-    Write-Verbose "Servers are connecting"
-}
+# How to add inside SQL Agent Job Code
+powershell.exe -executionpolicy bypass C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 -DelayMinutes 2 -WarningThresholdPercent 80 -CriticalThresholdPercent 90 -FailureNotifyThreshold 3
 
 <#
 use DBA

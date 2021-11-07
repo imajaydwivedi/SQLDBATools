@@ -65,10 +65,11 @@ try
     "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","ComputerName not provided." | Write-Output
     if([String]::IsNullOrEmpty($ComputerName)) {
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Fetch list of servers from Inventory.." | Write-Output
+        if($SdtServersList.Count -eq 0) {
+            Get-SdtServers -Verbose
+        }
         $ComputerName = @()
-        $ComputerName += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
-                                -Query "select * from $SdtInventoryTable where is_active = 1 and monitoring_enabled = 1;" `
-                                | Select-Object -ExpandProperty server;
+        $ComputerName += $SdtServersList;
     }
 
 

@@ -82,7 +82,7 @@ FunctionsToExport = @('Add-SdtApplicationInfo','Add-SdtCollectionError','Add-Sdt
                         'Get-SdtMacAddress','Get-SdtMachineType','Get-SdtMSSQLLinkPasswords',
                         'Get-SdtOrphanDatabaseFiles','Get-SdtPassword4Account','Get-SdtPerfMonCounters','Get-SdtPingStatus',
                         'Get-SdtPowerPlanInfo','Get-SdtProcessForDBA','Get-SdtRebootHistory','Get-SdtRunningQueries',
-                        'Get-SdtSecurityCheckInfo','Get-SdtServerInfo','Get-SdtSpaceToAdd','Get-SdtSQLInstance',
+                        'Get-SdtSecurityCheckInfo','Get-SdtServers','Get-SdtServerInfo','Get-SdtSpaceToAdd','Get-SdtSQLInstance',
                         'Get-SdtSQLInstanceInfo','Get-SdtVolumeInfo','Get-SdtVolumeSpaceConsumers','Get-SdtWhoIsActive',
                         'Grant-SdtSqlAccountRequiredPrivileges','Install-SdtOlaHallengrenMaintenanceScripts',
                         'Install-SdtSqlInstance','Invoke-SdtCommandMultiThreaded','Invoke-Sdtsp_WhoIsActive',
