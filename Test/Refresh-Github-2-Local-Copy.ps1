@@ -8,13 +8,13 @@ Import-Module SQLDBATools -DisableNameChecking
 Get-SdtServers -Verbose
 
 cls
-C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 `
+& 'C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1' `
         -DelayMinutes 2 -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
         -Verbose -Debug
 
 cls
 $servers = @($SdtInventoryInstance,'SqlProd1')
-C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 `
+& 'C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1' `
         -ComputerName $servers -DelayMinutes 2 `
         -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
         -Verbose -Debug
