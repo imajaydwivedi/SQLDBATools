@@ -225,7 +225,7 @@ Function Get-SqlServerProductKeys {
             if($Global:sdtPrintUserFriendlyMessage) {
                 Write-Host $returnMessage -ForegroundColor Red;
             }
-            if($sdtLogErrorToInventoryTable) {
+            if($SdtLogErrorToInventory) {
                 Add-CollectionError -ComputerName $pServerName `
                                     -Cmdlet 'Get-DbaProductKey' `
                                     -CommandText "Get-DbaProductKey -ComputerName '$pServerName'" `

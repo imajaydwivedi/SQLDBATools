@@ -3,7 +3,7 @@ Import-Module dbatools;
 Remove-Module SQLDBATools -ErrorAction SilentlyContinue;
 Import-Module SQLDBATools -DisableNameChecking;
 
-$global:sdtLogErrorToInventoryTable = $true;
+$global:SdtLogErrorToInventory = $true;
 
 $env:PSModulePath = $env:PSModulePath + ";" + "C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules\;C:\Program Files\MVPSI\Modules\";
 $ExecutionLogsFile = "$$SdtLogsPath\Wrapper-ServerInfo\___ExecutionLogs.txt";
@@ -62,5 +62,5 @@ Error:-
     }
 }
 
-$global:sdtLogErrorToInventoryTable = $false;
+$global:SdtLogErrorToInventory = $false;
 

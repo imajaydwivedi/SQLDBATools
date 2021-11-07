@@ -42,7 +42,7 @@
         [string] $Administrators = 'Corporate\SQL Admins'        
     )
 
-    $sdtSQL_Server_Setups = "$SdtSQL_Server_Setups";
+    $SdtSqlServerRepository = "$SdtSqlServerRepository";
 
     Write-Verbose "Creating credentail for SQLDBATools for PSRemoting";
 
@@ -50,7 +50,7 @@
     $SQLDBATools = Get-Module -ListAvailable -Name SQLDBATools | Select-Object -ExpandProperty ModuleBase;
     $AESKeyFilePath = "$SQLDBATools\SQLDBATools_AESKey.key";
     $credentialFilePath = "$SQLDBATools\SQLDBATools_Credentials.xml";
-    $sdtSQL_Server_Setups = "$SdtSQL_Server_Setups";
+    $SdtSqlServerRepository = "$SdtSqlServerRepository";
     [string]$userName = 'Corporate\SQLDBATools'
 
     # Create credential Object
@@ -65,10 +65,10 @@
 
     Write-Verbose "Starting PSRemoting Session to perform SQL Installation";
     $scriptBlock = {
-        $sdtSQL_Server_Setups = $Using:sdtSQL_Server_Setups;
+        $SdtSqlServerRepository = $Using:SdtSqlServerRepository;
         $Version = $Using:Version;
         $Edition = $Using:Edition;
-        $SetupFolder = "$sdtSQL_Server_Setups\$Version\$Edition";
+        $SetupFolder = "$SdtSqlServerRepository\$Version\$Edition";
         $SetupFolder_Local = "C:\";
 
         # Copy Setup File

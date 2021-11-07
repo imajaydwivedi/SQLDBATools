@@ -42,7 +42,7 @@
         [string] $Administrators = 'Corporate\SQL Admins',
 
         [Parameter(Mandatory=$false)]
-        [string] $sdtSQL_Server_Setups = "$SdtSQL_Server_Setups"
+        [string] $SdtSqlServerRepository = "$SdtSqlServerRepository"
     )
 
     $ConfigFile = "$PSScriptRoot\ConfigurationFile.ini";
@@ -73,14 +73,14 @@
 
     # Install JRE
     Write-Verbose "Make sure JRE is installed";
-    Write-Verbose "`$sdtSQL_Server_Setups = "$SdtSQL_Server_Setups""
-    Start-Process -Wait -FilePath "$sdtSQL_Server_Setups\jre-8u231-windows-x64.exe" -ArgumentList "/s" -NoNewWindow;
+    Write-Verbose "`$SdtSqlServerRepository = "$SdtSqlServerRepository""
+    Start-Process -Wait -FilePath "$SdtSqlServerRepository\jre-8u231-windows-x64.exe" -ArgumentList "/s" -NoNewWindow;
 
     # Install .net Framework
     Write-Verbose "Validating dot net Framework feature..";
     if((Get-WindowsFeature Net-Framework-Core).Installed -eq $false) {
-        Install-WindowsFeature Net-Framework-Core -source "$($sdtSQL_Server_Setups)dotNetFx40_Full_x86_x64.exe" | Out-Null;
-        Install-WindowsFeature Net-Framework-Core -source "$($sdtSQL_Server_Setups)dotNetFx35setup.exe" | Out-Null;
+        Install-WindowsFeature Net-Framework-Core -source "$($SdtSqlServerRepository)dotNetFx40_Full_x86_x64.exe" | Out-Null;
+        Install-WindowsFeature Net-Framework-Core -source "$($SdtSqlServerRepository)dotNetFx35setup.exe" | Out-Null;
     }
 
     # If SQLServiceAccountPassword or SAPassword is not provided in parameter

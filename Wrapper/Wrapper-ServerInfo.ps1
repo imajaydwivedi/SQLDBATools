@@ -2,7 +2,7 @@
 Import-Module dbatools;
 Import-Module SQLDBATools -DisableNameChecking;
 
-$global:sdtLogErrorToInventoryTable = $true;
+$global:SdtLogErrorToInventory = $true;
 
 $env:PSModulePath = $env:PSModulePath + ";" + "C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules\;C:\Program Files\MVPSI\Modules\";
 $ExecutionLogsFile = "$$SdtLogsPath\Wrapper-ServerInfo\___ExecutionLogs.txt";
@@ -101,7 +101,7 @@ $ErrorText
 "@ + $returnMessage;
         }
 
-        if($sdtLogErrorToInventoryTable) {
+        if($SdtLogErrorToInventory) {
             Add-CollectionError -ComputerName $Server.Server `
                                 -Cmdlet 'Wrapper-ServerInfo' `
                                 -CommandText $CommandText `
@@ -115,7 +115,7 @@ $ErrorText
     }
 }
 
-$global:sdtLogErrorToInventoryTable = $false;
+$global:SdtLogErrorToInventory = $false;
 
 $SuccessServers | ogv -Title "Successfully connected Servers"
 $FailedServers | ogv -Title "Servers with failed connection"
