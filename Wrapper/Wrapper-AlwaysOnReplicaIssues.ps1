@@ -3,7 +3,7 @@
 Import-Module SQLDBATools -DisableNameChecking;
 #Import-Module dbatools -DisableNameChecking;
 
-$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$$SdtLogsPath\Get-AlwaysOnIssues\___ExecutionLogs.txt";
 #New-Item $ExecutionLogsFile -Force
 
 # Truncate Staging table 
@@ -79,11 +79,11 @@ $(Get-Date) => Script running under context of [$($env:USERDOMAIN)\$($env:USERNA
 CATCH {
             $ErrorMessage = $_.Exception.Message;
             $FailedItem = $_.Exception.ItemName;
-            $errorFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues\$AOServer.txt";
+            $errorFile = "$$SdtLogsPath\Get-AlwaysOnIssues\$AOServer.txt";
 
             # Create if Error Log path does not exist
-            if (!(Test-Path "$sdtSQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues")) {
-                New-Item "$sdtSQLDBATools_ResultsDirectory\Logs\Get-AlwaysOnIssues" -ItemType directory;
+            if (!(Test-Path "$$SdtLogsPath\Get-AlwaysOnIssues")) {
+                New-Item "$$SdtLogsPath\Get-AlwaysOnIssues" -ItemType directory;
             }
 
             # Drop old error log file

@@ -1,6 +1,6 @@
 ﻿Import-Module SQLDBATools -DisableNameChecking;
 
-$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-DatabaseBackupInfo\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$$SdtLogsPath\Get-DatabaseBackupInfo\___ExecutionLogs.txt";
 
 $instancesquery = @"
 SELECT Name as InstanceName FROM [dbo].[Instance] 

@@ -32,9 +32,9 @@
     if($DestinationSqlInstance -notcontains '\') {$DestinationSqlInstance_p += '\MSSQLSERVER'}
 }
 
-Invoke-Sqlcmd -ServerInstance tul1dbapmtdb1 -Query 'drop database Global';
+Invoke-Sqlcmd -ServerInstance SqlProd1 -Query 'drop database Global';
 
-Restore-DatabaseByScriptOut -SourceSqlInstance TUL1RAZPDB1 -SourceDatabase Global `
-                            -DestinationSqlInstance TUL1DBAPMTDB1 -DestinationDatabase Global `
+Restore-DatabaseByScriptOut -SourceSqlInstance SqlProd1 -SourceDatabase Global `
+                            -DestinationSqlInstance SqlProd1 -DestinationDatabase Global `
                             -WorkingDirectory c:\temp\migration -CreateDatabaseShell `
                             -Verbose

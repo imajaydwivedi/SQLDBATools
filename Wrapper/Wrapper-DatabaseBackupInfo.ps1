@@ -2,7 +2,7 @@
 
 Import-Module SQLDBATools -DisableNameChecking;
 
-$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-DatabaseBackupInfo\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$$SdtLogsPath\Get-DatabaseBackupInfo\___ExecutionLogs.txt";
 
 
 $instancesquery ="SELECT InstanceName FROM Info.Instance WHERE IsDecommissioned = 0";

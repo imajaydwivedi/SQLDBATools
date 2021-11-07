@@ -54,4 +54,4 @@
     Write-Output $olderFiles
 }
 
-Get-OlderFilesOnDisk -ComputerName tul1cipxdb15 -Directory 'F:\' -Hours 168 | ogv
+Get-OlderFilesOnDisk -ComputerName SqlProd15 -Directory 'F:\' -Hours 168 | ogv

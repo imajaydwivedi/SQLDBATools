@@ -46,7 +46,7 @@ if( -not ( (Test-Path $INSTALLSQLDATADIR) -and  (Test-Path $SQLBACKUPDIR) -and (
 
 # If SQLServiceAccountPassword or SAPassword is not provided in parameter
 if([string]::IsNullOrEmpty($SQLServiceAccountPassword) -or [string]::IsNullOrEmpty($SAPassword)) {
-    $InventoryServer = 'TUL1DBAPMTDB1';
+    $InventoryServer = $SdtInventoryInstance;
     $ssn = New-PSSession -ComputerName $InventoryServer -Name $InventoryServer;
 
     if([string]::IsNullOrEmpty($SQLServiceAccountPassword)) {

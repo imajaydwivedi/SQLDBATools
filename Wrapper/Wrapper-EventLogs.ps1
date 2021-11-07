@@ -4,7 +4,7 @@ Import-Module dbatools #-Scope Local -ErrorAction SilentlyContinue;
 #Import-Module SQLDBATools -DisableNameChecking;
 Invoke-Expression -Command "C:\Set-EnvironmentVariables.ps1";
 
-$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Wrapper-EventLogs\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$$SdtLogsPath\Wrapper-EventLogs\___ExecutionLogs.txt";
 
 $Servers = @('SqlNode01','SqlNode02','SqlNode03');
 $EventIDs = @(7034,1069,2004)

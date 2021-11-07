@@ -42,7 +42,7 @@
         [string] $Administrators = 'Corporate\SQL Admins'        
     )
 
-    $sdtSQL_Server_Setups = '\\tul1it1\it\sdtSQL_Server_Setups';
+    $sdtSQL_Server_Setups = "$SdtSQL_Server_Setups";
 
     Write-Verbose "Creating credentail for SQLDBATools for PSRemoting";
 
@@ -50,7 +50,7 @@
     $SQLDBATools = Get-Module -ListAvailable -Name SQLDBATools | Select-Object -ExpandProperty ModuleBase;
     $AESKeyFilePath = "$SQLDBATools\SQLDBATools_AESKey.key";
     $credentialFilePath = "$SQLDBATools\SQLDBATools_Credentials.xml";
-    $sdtSQL_Server_Setups = '\\tul1it1\it\sdtSQL_Server_Setups\';
+    $sdtSQL_Server_Setups = "$SdtSQL_Server_Setups";
     [string]$userName = 'Corporate\SQLDBATools'
 
     # Create credential Object
@@ -86,5 +86,5 @@
     Write-Verbose "PSRemoting Session ended.";
 }
 
-$ServerName = 'TUL1SQLPOC01'; $Version = 2014; $Edition = 'Developer';
+$ServerName = 'SqlPoc01'; $Version = 2014; $Edition = 'Developer';
 Install-SqlInstance -ServerName $ServerName -Version 2014 -Edition Developer -Verbose;

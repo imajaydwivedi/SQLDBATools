@@ -122,10 +122,10 @@ PrivateData = @{
         Tags = @('SQLDBATools','mssqlserver','dba')
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/imajaydwivedi/SQLDBATools/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        # ProjectUri = 'https://github.com/imajaydwivedi/SQLDBATools'
+        ProjectUri = 'https://github.com/imajaydwivedi/SQLDBATools'
 
         # A URL to an icon representing this module.
         # IconUri = ''

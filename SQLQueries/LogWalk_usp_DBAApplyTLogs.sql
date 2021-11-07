@@ -9,7 +9,7 @@ CREATE PROCEDURE [dbo].[usp_DBAApplyTLogs]
 	-- Add the parameters for the stored procedure here
 	@sourceDbname varchar(50),							-- Database name on the publisher
 	@destDbname varchar(50),							-- Database name on the subscriber
-	@SourceLocation varchar(100) = '\\tul1cipcnpdb1\f$\dump\',	-- Location of the log files on the publisher; default Prod
+	@SourceLocation varchar(100) = '\\SqlProd1\f$\dump\',	-- Location of the log files on the publisher; default Prod
 	@LocalLocation varchar(100) = 'f:\LogWalk_TUF_Files\'					-- Location of the standby file on the subscriber
 	,@GetSingleMode bit = 0 -- Start Restore Log after taking Single User mode of database
 	,@Verbose bit = 0

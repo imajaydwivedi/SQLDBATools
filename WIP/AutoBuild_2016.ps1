@@ -42,7 +42,7 @@
         [string] $Administrators = 'Corporate\SQL Admins',
 
         [Parameter(Mandatory=$false)]
-        [string] $sdtSQL_Server_Setups = '\\tul1it1\it\sdtSQL_Server_Setups\'
+        [string] $sdtSQL_Server_Setups = "$SdtSQL_Server_Setups"
     )
 
     $ConfigFile = "$PSScriptRoot\ConfigurationFile.ini";
@@ -73,7 +73,7 @@
 
     # Install JRE
     Write-Verbose "Make sure JRE is installed";
-    Write-Verbose "`$sdtSQL_Server_Setups = '$sdtSQL_Server_Setups'"
+    Write-Verbose "`$sdtSQL_Server_Setups = "$SdtSQL_Server_Setups""
     Start-Process -Wait -FilePath "$sdtSQL_Server_Setups\jre-8u231-windows-x64.exe" -ArgumentList "/s" -NoNewWindow;
 
     # Install .net Framework
@@ -86,7 +86,7 @@
     # If SQLServiceAccountPassword or SAPassword is not provided in parameter
     Write-Verbose "Validating All Passwords";
     if([string]::IsNullOrEmpty($SQLServiceAccountPassword) -or [string]::IsNullOrEmpty($SAPassword)) {
-        $InventoryServer = 'TUL1DBAPMTDB1';
+        $InventoryServer = $SdtInventoryInstance;
         $ssn = New-PSSession -ComputerName $InventoryServer -Name $InventoryServer;
 
         if([string]::IsNullOrEmpty($SQLServiceAccountPassword)) {

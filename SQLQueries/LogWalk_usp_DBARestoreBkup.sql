@@ -23,8 +23,8 @@ BEGIN
 
 				This proc will try to restore a database from a bkup located in the @SourceLocation location. 
 
-		Example: Exec usp_DBARestoreBkup 'AMG_Extra','AMG_Extra', '\\tul1cipcnpdb1\f$\dump\archive\', 'f:\dump\' 
-				 Exec usp_DBARestoreBkup 'AMG_Extra','AMG_Extra', '\\tul1cipcnpdb1\f$\dump\archive\', 'f:\dump\', @SetReadOnly = 1, @Verbose = 1
+		Example: Exec usp_DBARestoreBkup 'AMG_Extra','AMG_Extra', '\\SqlProd1\f$\dump\archive\', 'f:\dump\' 
+				 Exec usp_DBARestoreBkup 'AMG_Extra','AMG_Extra', '\\SqlProd1\f$\dump\archive\', 'f:\dump\', @SetReadOnly = 1, @Verbose = 1
 
 	Modifications:	July 09, 2019 - Ajay Dwivedi
 					Add parameters to accept data/log files location, and take existing files in consideration

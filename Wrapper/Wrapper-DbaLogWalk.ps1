@@ -6,17 +6,17 @@ cls
 $SourceDatabases_DS12 = @('AMG_AVG','AMG_Extra','AMG_Music','AMG_MusicMore','Babel','DSG_EU','Facebook','Mosaic','MuzeUK','MuzeUS','MuzeVideo','Prism','RGS','RCM_morecore_20130710_NoMusic1a_en-US','Sky','Staging','Staging2','Twitter','TVGolConfigs','UKVideo');
 foreach($SourceDb in $SourceDatabases_DS12)
 {
-    Setup-DbaLogWalk -SourceServer TUL1MDPDWMID01 -SourceDbName $SourceDb -DestinationServer TUL1MDPDWDS12 -GenerateRESTOREScriptOnly;
+    Setup-DbaLogWalk -SourceServer SqlProd01 -SourceDbName $SourceDb -DestinationServer SqlProd12 -GenerateRESTOREScriptOnly;
 }
 
 $SourceDatabases_DS13 = @('AMG_AVG','AMG_Extra','AMG_Music','AMG_MusicMore','Babel','DSG_EU','Facebook','IDS_Turner','Mosaic','MuzeUK','MuzeVideo','Prism','Staging','Staging2','Twitter','TVGolConfigs');
 foreach($SourceDb in $SourceDatabases_DS13)
 {
-    Setup-DbaLogWalk -SourceServer TUL1MDPDWMID01 -SourceDbName $SourceDb -DestinationServer TUL1MDPDWDS13 -GenerateRESTOREScriptOnly;
+    Setup-DbaLogWalk -SourceServer SqlProd01 -SourceDbName $SourceDb -DestinationServer SqlProd13 -GenerateRESTOREScriptOnly;
 }
 
 <#
-$babelHistory = Get-DbaBackupHistory -SqlInstance TUL1CIPCNPDB1 -Database Babel -Last
+$babelHistory = Get-DbaBackupHistory -SqlInstance SqlProd1 -Database Babel -Last
 $babelHistory | Select-Object * | ogv
     $ProcessAllLogBackups = $true;
     $logBackupFiles_Count = 0;
@@ -45,4 +45,4 @@ foreach($bkp in $babelHistory)
 #>
 
 
-#Invoke-Command -ComputerName DestinationServer -ScriptBlock { robocopy '\\TUL1MDPDWMID01\J$\MSSQLData\Backups' 'Local\Path\On\Destination' Babel_FULL_20190613.bak }
+#Invoke-Command -ComputerName DestinationServer -ScriptBlock { robocopy '\\SqlProd01\J$\MSSQLData\Backups' 'Local\Path\On\Destination' Babel_FULL_20190613.bak }

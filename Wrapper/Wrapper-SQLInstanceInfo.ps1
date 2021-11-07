@@ -6,7 +6,7 @@ Import-Module SQLDBATools -DisableNameChecking;
 $global:sdtLogErrorToInventoryTable = $true;
 
 $env:PSModulePath = $env:PSModulePath + ";" + "C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules\;C:\Program Files\MVPSI\Modules\";
-$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Wrapper-ServerInfo\___ExecutionLogs.txt";
+$ExecutionLogsFile = "$$SdtLogsPath\Wrapper-ServerInfo\___ExecutionLogs.txt";
 
 $tsqlInventoryServers = @"
 select * from dbo.Server s where s.IsStandaloneServer = 1 or s.IsSqlCluster = 1 or s.IsAG = 1 or s.IsAgNode = 1

@@ -1,6 +1,6 @@
 ﻿cls
 [boolean]$generateOnly = $true;
-$serverName = 'tul1cipedb2';
+$serverName = 'SqlProd1';
 $dbName = 'Cosmo';
 
 # Provide New Drives

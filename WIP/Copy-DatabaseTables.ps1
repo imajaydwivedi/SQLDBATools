@@ -306,11 +306,11 @@
     #>
 }
 
-Copy-DatabaseTables -SourceServerName 'tul1dbapmtdb1' `
+Copy-DatabaseTables -SourceServerName $SdtInventoryInstance `
                     -SourceInstanceName 'SQL2016' `
                     -SourceDatabaseName 'YourOrgSQLInventory' `
                     -SourceSchemaName 'dbo' `
-                    -DestinationServerName 'tul1dbapmtdb1' `
+                    -DestinationServerName $SdtInventoryInstance `
                     -DestinationDatabaseName 'YourOrgSQLInventory' `
                     -DestinationSchemaName 'dbo' `
                     -WorkingDirectory 'c:\temp\migration' `

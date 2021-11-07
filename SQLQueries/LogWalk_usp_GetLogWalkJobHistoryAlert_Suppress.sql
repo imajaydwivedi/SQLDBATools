@@ -472,7 +472,7 @@ DELETE FROM DBA..LogWalkThresholdInstance WHERE JobName = '''+@p_JobName+''';
 
 						IF @p_SendMail = 1
 						BEGIN
-							-- From -> SQL Alerts - TUL1CIPRDB1 <SQLAlerts@YourOrg.com>
+							-- From -> SQL Alerts - SqlProdA <SQLAlerts@YourOrg.com>
 
 							IF @p_Verbose = 1
 								PRINT 'Trying to find blockers..';

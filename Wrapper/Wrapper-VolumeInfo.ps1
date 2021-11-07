@@ -2,10 +2,10 @@
 
 Import-Module SQLDBATools -DisableNameChecking;
 
-$ExecutionLogsFile = "$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo\___ExecutionLogs.txt";
-if (!(Test-Path "$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo")) {
-    Write-Verbose "Path "+"$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo does not exist. Creating it.";
-    New-Item -ItemType "directory" -Path "$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo";
+$ExecutionLogsFile = "$$SdtLogsPath\Get-VolumeInfo\___ExecutionLogs.txt";
+if (!(Test-Path "$$SdtLogsPath\Get-VolumeInfo")) {
+    Write-Verbose "Path "+"$$SdtLogsPath\Get-VolumeInfo does not exist. Creating it.";
+    New-Item -ItemType "directory" -Path "$$SdtLogsPath\Get-VolumeInfo";
 }
 
 
@@ -22,7 +22,7 @@ TRY {
     if (Test-Path $ExecutionLogsFile) {
         Remove-Item $ExecutionLogsFile;
         # Clear last Log generated
-        Get-ChildItem "$sdtSQLDBATools_ResultsDirectory\Logs\Get-VolumeInfo" | Remove-Item;
+        Get-ChildItem "$$SdtLogsPath\Get-VolumeInfo" | Remove-Item;
     }
 
     "Script running under context of [$($env:USERDOMAIN)\$($env:USERNAME)]
