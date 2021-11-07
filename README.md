@@ -1,5 +1,15 @@
 # SQLDBATools
-Powershell Module containing cmdlets for carrying out SQL DBA activities. It includes:-
+Powershell Module containing cmdlets for carrying out SQL DBA activities. 
+
+## How to Install
+One way to work with this module is to simply download this github repository at zip file, extract downloaded zip file, and extract it to folder named 'SQLDBATools'. Finally copy/paste it on one of the module folders returned by variable $PSGetPath.
+
+It can also be installed easily from PSGallery using below command -
+
+`Install-Module -Name SQLDBATools
+`
+
+Some of the common functionalities of this module are as follows -
 
 ## Get-SdtServerInfo
 This function returns basic information about machine(s) passed in pipeline or as value. This includes Operating System, Service Pack, LastBoot Time, Model, RAM & CPU for computer(s).
