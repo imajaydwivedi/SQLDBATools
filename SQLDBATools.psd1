@@ -10,7 +10,7 @@ RootModule = 'SQLDBATools.psm1'
 
 # Version number of this module.
     # https://jeffbrown.tech/how-to-publish-your-first-powershell-gallery-package/
-ModuleVersion = '0.0.5'
+ModuleVersion = '0.0.6'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
