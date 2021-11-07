@@ -31,6 +31,7 @@ $verbose = $false;
 if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbose[:$false]
     $verbose = $PSBoundParameters.Get_Item('Verbose')
 }
+$isEnvFileLoaded = $false
 
 # Set basic environment variables
 $envFileBase = Join-Path $SdtDependenciesPath 'Set-SdtEnvironmentVariables.ps1'
@@ -44,7 +45,11 @@ if($verbose) {
 }
 # If environment variable file present
 if(Test-Path $SdtEnvFile) {
-    Invoke-Expression -Command $SdtEnvFile;
+    & "$SdtEnvFile";
+    $isEnvFileLoaded = $true
+
+    # Create Logs Directory
+    if( -not (Test-Path $SdtLogsPath) ) { [System.IO.Directory]::CreateDirectory($SdtLogsPath) | Out-Null }
 }
 else {
     if(-not (Test-Path $SdtPrivatePath)) {
@@ -52,64 +57,8 @@ else {
     }
     Copy-Item $envFileBase -Destination $SdtEnvFile | Out-Null;
     Write-Output "Environment file '$SdtEnvFile' created.`nKindly modify the variable values according to your environment";
-}
-
-# Create Logs Directory
-if(-not (Test-Path $SdtLogsPath)) { [System.IO.Directory]::CreateDirectory($SdtLogsPath) | Out-Null }
-
-# Check for SqlServer PS Module
-$M_SqlServer = Get-Module -Name SqlServer -ListAvailable -Verbose:$false;
-if([String]::IsNullOrEmpty($M_SqlServer)) {
-    Write-Output 'SqlServer powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
-    Write-Output "`tInstall-Module -Name SqlServer -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
-}
-else { # If SqlServer PS Module is present, then check for required tables
-    
-    # $SdtInventoryTable
-    $r = Invoke-Sqlcmd -ServerInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
-                    -Query "select [exists] = convert(bit,(case when object_id('$SdtInventoryTable') is not null then 1 else 0 end));"
-    if(-not $r.exists) {
-        $message = "Table '$SdtInventoryTable' not found in [$SdtInventoryDatabase] database of [$SdtInventoryInstance] server.
-`nIf already existing in another server/database, then update `$SdtInventoryInstance & `$SdtInventoryDatabase variables in 'SQLDBATools\Private\Set-SdtEnvironmentVariables.ps1' file.
-`nIf not existing anywhere, then kindly create it in [$SdtInventoryInstance].[$SdtInventoryDatabase] database using below tsql -
-`n`n$SdtInventoryTableDefinitionSql`n"
-        Write-Warning -Message $message;
-    }
-    else {
-        Invoke-Sqlcmd -ServerInstance $SdtInventoryInstance -Database 'tempdb' -Query $SdtInventoryTableDefinitionSql -ErrorAction Ignore | Out-Null;
-        $r = Invoke-Sqlcmd -ServerInstance $SdtInventoryInstance -Database 'tempdb' `
-                        -Query @"
-set nocount on;
-go
-
-select [exists] = convert(bit,(case when exists (
-select *
-from tempdb.INFORMATION_SCHEMA.COLUMNS t with (nolock)
-left join audit_archive.INFORMATION_SCHEMA.COLUMNS i with (nolock)
-	on t.TABLE_SCHEMA = i.TABLE_SCHEMA and t.TABLE_NAME = i.TABLE_NAME
-	and t.COLUMN_NAME = i.COLUMN_NAME
-where (t.TABLE_SCHEMA+'.'+t.TABLE_NAME) = '$SdtInventoryTable'
-and i.COLUMN_NAME is null
-) then 0 else 1 end))
-go
-"@
-        if(-not $r.exists) {
-            $message = "Table '$SdtInventoryTable' in [$SdtInventoryInstance].[$SdtInventoryDatabase] does not have matching columns required.
-    `nKindly update table columns according to definition mentioned in 'SQLDBATools\Private\Set-SdtEnvironmentVariables.ps1' file.
-    `n`n$SdtInventoryTableDefinitionSql`n"
-            Write-Warning -Message $message;
-        }
-    }
-
-    # $SdtAlertTable
-    $r = Invoke-Sqlcmd -ServerInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
-                    -Query "select [exists] = convert(bit,(case when object_id('$SdtAlertTable') is not null then 1 else 0 end));"
-    if(-not $r.exists) {
-        $message = "Table '$SdtAlertTable' not found in [$SdtInventoryDatabase] database of [$SdtInventoryInstance] server.
-`nKindly create it in [$SdtInventoryInstance].[$SdtInventoryDatabase] database using below tsql -
-`n`n$SdtAlertTableDefinitionSql`n"
-        Write-Warning -Message $message;
-    }
+    & "$SdtEnvFile";
+    $isEnvFileLoaded = $true
 }
 
 $M_dbatools = Get-Module -Name dbatools -ListAvailable -Verbose:$false;
@@ -117,6 +66,71 @@ if([String]::IsNullOrEmpty($M_dbatools)) {
     Write-Output 'dbatools powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
     Write-Output "`tInstall-Module -Name dbatools -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
 }
+elseif ($isEnvFileLoaded)
+{ # If dbatools is present and environment variables are loaded, then check for required tables
+    
+    # if Inventory setup has to be done
+    if($SdtEnableInventory)
+    {
+        # $SdtInventoryTable
+        $r = Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+                        -Query "select [exists] = convert(bit,(case when object_id('$SdtInventoryTable') is not null then 1 else 0 end));" -EnableException
+        if(-not $r.exists)
+        { # Inventory table does not exist
+            $message = "Table '$SdtInventoryTable' not found in [$SdtInventoryDatabase] database of [$SdtInventoryInstance] server.
+    `nIf already existing in another server/database, then update `$SdtInventoryInstance & `$SdtInventoryDatabase variables in 'SQLDBATools\Private\Set-SdtEnvironmentVariables.ps1' file.
+    `nIf not existing anywhere, then kindly create it in [$SdtInventoryInstance].[$SdtInventoryDatabase] database using below tsql -
+    `n`n$SdtInventoryTableDefinitionSql`n"
+            Write-Warning -Message $message;
+        }
+        else
+        { # Inventory table exists. So validate required columns
+            Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database 'tempdb' -Query $SdtInventoryTableDefinitionSql -ErrorAction Ignore | Out-Null;
+            $r = Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database 'tempdb' `
+                            -Query @"
+    set nocount on;
+    go
+
+    select [exists] = convert(bit,(case when exists (
+    select *
+    from tempdb.INFORMATION_SCHEMA.COLUMNS t with (nolock)
+    left join $SdtInventoryDatabase.INFORMATION_SCHEMA.COLUMNS i with (nolock)
+	    on t.TABLE_SCHEMA = i.TABLE_SCHEMA and t.TABLE_NAME = i.TABLE_NAME
+	    and t.COLUMN_NAME = i.COLUMN_NAME
+    where (t.TABLE_SCHEMA+'.'+t.TABLE_NAME) = '$SdtInventoryTable'
+    and i.COLUMN_NAME is null
+    ) then 0 else 1 end))
+    go
+"@
+            if(-not $r.exists) # If required columns not found
+            {
+                $message = "Table '$SdtInventoryTable' in [$SdtInventoryInstance].[$SdtInventoryDatabase] does not have matching columns required.
+        `nKindly update table columns according to definition mentioned in 'SQLDBATools\Private\Set-SdtEnvironmentVariables.ps1' file.
+        `n`n$SdtInventoryTableDefinitionSql`n"
+                Write-Warning -Message $message;
+            }
+        }
+
+        # $SdtAlertTable
+        $r = Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+                        -Query "select [exists] = convert(bit,(case when object_id('$SdtAlertTable') is not null then 1 else 0 end));"
+        if(-not $r.exists)
+        {
+            $message = "Table '$SdtAlertTable' not found in [$SdtInventoryDatabase] database of [$SdtInventoryInstance] server.
+    `nKindly create it in [$SdtInventoryInstance].[$SdtInventoryDatabase] database using below tsql -
+    `n`n$SdtAlertTableDefinitionSql`n"
+            Write-Warning -Message $message;
+        }
+    }
+}
+
+# Check for SqlServer PS Module
+$M_SqlServer = Get-Module -Name SqlServer -ListAvailable -Verbose:$false;
+if([String]::IsNullOrEmpty($M_SqlServer)) {
+    Write-Output 'SqlServer powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
+    Write-Output "`tInstall-Module -Name SqlServer -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
+}
+
 
 $M_PoshRSJob = Get-Module -Name PoshRSJob -ListAvailable -Verbose:$false;
 if([String]::IsNullOrEmpty($M_PoshRSJob)) {
