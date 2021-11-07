@@ -128,7 +128,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'Added functions for automatic Disk Space alert management. Newly added functions are Raise-SdtAlert, Alert-SdtDiskSpace, Get-SdtServers, Get-SdtLocalTime & Wrapper-SdtDiskSpace'
 
         # Prerelease string of this module
         # Prerelease = ''
