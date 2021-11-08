@@ -26,7 +26,8 @@ PayPal |   | UPI
 ## Help or Documentation
 Want to know in details about functionalitires supported by this module, kindly check below documentation -
 
-<b> [Documentation on [SQLDBATools]](docs/index.md)</b>
+<!-- <b> [Documentation on [SQLDBATools]](docs/index.md)</b> -->
+<b> [Documentation on [SQLDBATools]](https://imajaydwivedi.github.io/SQLDBATools/)</b>
 
 To learn on how to use this script, please watch below YouTube video:-
 
