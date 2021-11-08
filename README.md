@@ -30,4 +30,4 @@ Want to know in details about functionalitires supported by this module, kindly 
 
 To learn on how to use this script, please watch below YouTube video:-
 
-[![Watch this video](Images/PlayThumbnail____CustomLogShipping.jpg)](https://youtu.be/vF-EsyHnFRk)
+[![Watch this video](https://ajaydwivedi.com/wp-content/uploads/2021/06/image-3-1024x379.png)](https://youtu.be/vF-EsyHnFRk)
