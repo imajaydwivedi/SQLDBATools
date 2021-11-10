@@ -2,9 +2,9 @@
 Remove-Module SQLDBATools
 
 cls
-robocopy "C:\Users\Public\Documents\GitHub\SQLDBATools\" "C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\" /e /is /it /MT:4
-robocopy "C:\Users\adwivedi\Documents\WindowsPowerShell\Modules\SQLDBATools\" 'C:\Program Files\WindowsPowerShell\Modules\SQLDBATools\0.0.6\' /e /is /it /MT:4
-Import-Module C:\Users\adwivedi\Documents\WindowsPowerShell\Modules\SQLDBATools -DisableNameChecking
+robocopy "C:\Users\Public\Documents\GitHub\SQLDBATools\" "C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\" /e /is /it /MT:4 /XD Private
+robocopy "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\" "C:\Program Files\WindowsPowerShell\Modules\SQLDBATools\0.0.6\" /e /is /it /MT:4 /XD Private
+Import-Module "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools" -DisableNameChecking
 
 Get-SdtServers -Verbose
 
@@ -12,7 +12,7 @@ cls
 & 'C:\Users\Public\Documents\GitHub\SQLDBATools\Wrapper\Wrapper-SdtTestCommand.ps1' -ComputerName 'SqlProd2' -Verbose
 
 cls
-& 'C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1' `
+& 'C:\Users\Public\Documents\GitHub\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1' `
         -DelayMinutes 2 -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
         -Verbose -Debug
 
