@@ -44,6 +44,13 @@
         
     Write-Debug "Inside Raise-SdtAlert.ps1"
 
+    # Setup mail profiles
+    if($SdtSmtpServer -eq 'smtp.gmail.com') {
+        $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; Credential = $SdtSmtpGmailCredential; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
+    } else {
+        $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
+    }
+
     $currentAlert = @()
     $currentAlert += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
                 -Query "select * from $SdtAlertTable a with (nolock) where alert_key = '$Subject' and state in ('active','suppressed')";
@@ -54,9 +61,7 @@
     {
         Write-Verbose "Alert is inactive, but history is found."
         Write-Verbose "Clearing mail notification.."
-        Send-MailMessage -From $SdtAlertEmailAddress -To $To -Subject $Subject -Body $Body -Priority $Priority `
-                        -DeliveryNotificationOption OnSuccess, OnFailure `
-                        -SmtpServer $SmtpServer -Port $Port -BodyAsHtml:$BodyAsHtml
+        Send-MailMessage @mailParams -Subject $Subject -Body $Body -Priority $Priority
         
         Write-Verbose "Marking cleared in alert table.."
         $alertUpdateSql = @"
@@ -84,10 +89,10 @@ select '$Subject', '$($To -join ',')', '$Severity';
 
         Write-Verbose "Sending mail notification.."
         if([String]::IsNullOrEmpty($Attachments)) {
-            Send-MailMessage -From $SdtAlertEmailAddress -To $To -Subject $Subject -Body $Body -Priority $Priority -DeliveryNotificationOption OnSuccess, OnFailure -SmtpServer $SmtpServer -Port $Port -BodyAsHtml:$BodyAsHtml
+            Send-MailMessage @mailParams -Subject $Subject -Body $Body -Priority $Priority
         }
         else {
-            Send-MailMessage -From $SdtAlertEmailAddress -To $To -Subject $Subject -Body $Body -Attachments $Attachments -Priority $Priority -DeliveryNotificationOption OnSuccess, OnFailure -SmtpServer $SmtpServer -Port $Port -BodyAsHtml:$BodyAsHtml
+            Send-MailMessage @mailParams -Subject $Subject -Body $Body -Attachments $Attachments
         }
     }
 
@@ -130,10 +135,10 @@ where alert_key = '$Subject' and state in ('active','suppressed')
         {
             Write-Verbose "Sending mail notification.."
             if([String]::IsNullOrEmpty($Attachments)) {
-                Send-MailMessage -From $SdtAlertEmailAddress -To $To -Subject $Subject -Body $Body -Priority $Priority -DeliveryNotificationOption OnSuccess, OnFailure -SmtpServer $SmtpServer -Port $Port -BodyAsHtml:$BodyAsHtml
+                Send-MailMessage @mailParams -Subject $Subject -Body $Body -Priority $Priority 
             }
             else {
-                Send-MailMessage -From $SdtAlertEmailAddress -To $To -Subject $Subject -Body $Body -Attachments $Attachments -Priority $Priority -DeliveryNotificationOption OnSuccess, OnFailure -SmtpServer $SmtpServer -Port $Port -BodyAsHtml:$BodyAsHtml
+                Send-MailMessage @mailParams -Subject $Subject -Body $Body -Attachments $Attachments -Priority $Priority
             }
         }
     }

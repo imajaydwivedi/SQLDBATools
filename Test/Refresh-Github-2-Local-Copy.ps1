@@ -3,7 +3,8 @@ Remove-Module SQLDBATools
 
 cls
 robocopy "C:\Users\Public\Documents\GitHub\SQLDBATools\" "C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\" /e /is /it /MT:4
-Import-Module SQLDBATools -DisableNameChecking
+robocopy "C:\Users\adwivedi\Documents\WindowsPowerShell\Modules\SQLDBATools\" 'C:\Program Files\WindowsPowerShell\Modules\SQLDBATools\0.0.6\' /e /is /it /MT:4
+Import-Module C:\Users\adwivedi\Documents\WindowsPowerShell\Modules\SQLDBATools -DisableNameChecking
 
 Get-SdtServers -Verbose
 
@@ -21,7 +22,7 @@ $servers = @($SdtInventoryInstance,'SqlProd1')
 
 cls
 $servers = @($SdtInventoryInstance)
-Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 50 -CriticalThresholdPercent 85 -DelayMinutes 5 -Verbose -Debug
+Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 20 -CriticalThresholdPercent 50 -DelayMinutes 5 -Verbose -Debug
 
 # How to add inside SQL Agent Job Code
 powershell.exe -executionpolicy bypass C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 -DelayMinutes 2 -WarningThresholdPercent 80 -CriticalThresholdPercent 90 -FailureNotifyThreshold 3
