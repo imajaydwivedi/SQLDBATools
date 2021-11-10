@@ -24,8 +24,12 @@ cls
 $servers = @($SdtInventoryInstance)
 Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 20 -CriticalThresholdPercent 50 -DelayMinutes 5 -Verbose -Debug
 
-# How to add inside SQL Agent Job Code
-powershell.exe -executionpolicy bypass C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1 -DelayMinutes 2 -WarningThresholdPercent 80 -CriticalThresholdPercent 90 -FailureNotifyThreshold 3
+# CmdExec Step Type with below format of Script Call. Try both of these methods in command prompt first
+powershell.exe -executionpolicy bypass C:\Users\Public\Documents\Study` Material\Wrapper-SdtTestCommand.ps1 -ComputerName 'SqlProd1'
+powershell.exe -executionpolicy bypass C:\Users\Public\Documents\Study^ Material\Wrapper-SdtTestCommand.ps1 -ComputerName 'SqlProd1'
+
+# Powershell Step Type with below format of Script Call => Working
+Invoke-Command -ScriptBlock { & "C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtTestCommand.ps1" -ComputerName 'SqlProd1'}
 
 <#
 use DBA
