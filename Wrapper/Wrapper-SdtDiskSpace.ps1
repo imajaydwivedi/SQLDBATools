@@ -14,7 +14,7 @@ Param (
     [Parameter(Mandatory=$false)]
     [int]$FailureNotifyThreshold = 3,
     [Parameter(Mandatory=$false)]
-    [string[]]$EmailTo = @($SdtDBAMailId),
+    [string[]]$EmailTo,
     [Parameter(Mandatory=$false)]
     [int]$DelayMinutes = 30,
     [Parameter(Mandatory=$false)]
@@ -28,6 +28,30 @@ $script = $MyInvocation.MyCommand.Name
 if([String]::IsNullOrEmpty($Script)) {
     $Script = 'Wrapper-SdtDiskSpace.ps1'
 }
+
+# Load SQLDBATools
+$isModuleFileFound = $false
+$commandPath = Split-Path $MyInvocation.MyCommand.Path -Parent;
+$modulePathBasedOnWrapperLocation = Split-Path $PSScriptRoot -Parent;
+$moduleFileBasedOnWrapperLocation = Join-Path $modulePathBasedOnWrapperLocation 'SQLDBATools.psm1';
+
+if( Test-Path $moduleFileBasedOnWrapperLocation )  {
+    Write-Verbose "Module file found based on wrapper file location"
+    $isModuleFileFound = $true
+    Import-Module $moduleFileBasedOnWrapperLocation -DisableNameChecking
+}
+
+if(-not $isModuleFileFound) {
+    Write-Verbose "Loading module from `$env:PSModulePath"
+    Import-Module SQLDBATools -DisableNameChecking
+}
+
+
+# Set $EmailTo to DBA Group
+if([String]::IsNullOrEmpty($EmailTo)) {
+    $EmailTo = @($SdtDBAGroupMailId)
+}
+
 # Log files
 $statusLogFile = $(Join-Path $SdtLogsPath $($Script.Replace('.ps1','__Status.log')))
 $executionLogFile = $(Join-Path $SdtLogsPath $($Script.Replace('.ps1',"__Log__$($dtmm).log")))

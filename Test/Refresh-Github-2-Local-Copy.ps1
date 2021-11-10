@@ -9,6 +9,9 @@ Import-Module C:\Users\adwivedi\Documents\WindowsPowerShell\Modules\SQLDBATools 
 Get-SdtServers -Verbose
 
 cls
+& 'C:\Users\Public\Documents\GitHub\SQLDBATools\Wrapper\Wrapper-SdtTestCommand.ps1' -ComputerName 'SqlProd2' -Verbose
+
+cls
 & 'C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1' `
         -DelayMinutes 2 -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
         -Verbose -Debug
