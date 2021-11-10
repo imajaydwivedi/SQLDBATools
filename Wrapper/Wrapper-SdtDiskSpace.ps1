@@ -6,9 +6,9 @@ Param (
     [Parameter(Mandatory=$false)]
     [string[]]$ExcludeDrive,
     [Parameter(Mandatory=$false)]
-    [decimal]$WarningThresholdPercent = 80.0,
+    [decimal]$WarningThresholdPercent = 75.0,
     [Parameter(Mandatory=$false)]
-    [decimal]$CriticalThresholdPercent = 90.0,
+    [decimal]$CriticalThresholdPercent = 85.0,
     [Parameter(Mandatory=$false)]
     [string]$ThresholdTable = 'dbo.sdt_disk_space_threshold',
     [Parameter(Mandatory=$false)]
@@ -16,7 +16,7 @@ Param (
     [Parameter(Mandatory=$false)]
     [string[]]$EmailTo,
     [Parameter(Mandatory=$false)]
-    [int]$DelayMinutes = 30,
+    [int]$DelayMinutes = 60,
     [Parameter(Mandatory=$false)]
     [int]$LogRetentionMinutes = 10080 # 7 days
 )
