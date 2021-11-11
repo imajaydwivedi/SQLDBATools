@@ -3,7 +3,7 @@
     Created By:-    Ajay Kumar Dwivedi
     Email ID:-      ajay.dwivedi2007@gmail.com
     Modified Date:- 07-Nov-2021
-    Version:-       0.0.6
+    Version:-       0.0.7
 #>
 
 Push-Location;
@@ -34,8 +34,9 @@ if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbo
 $isEnvFileLoaded = $false
 
 # Set basic environment variables
-$envFileBase = Join-Path $SdtDependenciesPath 'Set-SdtEnvironmentVariables.ps1'
+$global:envFileBase = Join-Path $SdtDependenciesPath 'Set-SdtEnvironmentVariables.ps1'
 $global:SdtEnvFile = Join-Path $SdtPrivatePath 'Set-SdtEnvironmentVariables.ps1'
+$global:SdtModuleVersion = (Get-Module -ListAvailable $SdtModulePath).Version
 
 # First Load Environment Variables
 # File :Set-EnvironmentVariables.ps1" is also present inside Functions subdirectory with dummy values.
@@ -52,12 +53,36 @@ if(Test-Path $SdtEnvFile) {
     if( -not (Test-Path $SdtLogsPath) ) { [System.IO.Directory]::CreateDirectory($SdtLogsPath) | Out-Null }
 }
 else {
-    if(-not (Test-Path $SdtPrivatePath)) {
+    if(-not (Test-Path $SdtPrivatePath)) { # create Private folder
         [System.IO.Directory]::CreateDirectory($SdtPrivatePath);
     }
-    Copy-Item $envFileBase -Destination $SdtEnvFile | Out-Null;
-    Write-Output "Environment file '$SdtEnvFile' created.`nKindly modify the variable values according to your environment";
-    & "$SdtEnvFile";
+    if(-not(Test-Path $SdtEnvFile))
+    { # check for Env file in Private folder
+        if((Split-Path $SdtModulePath -Leaf) -ne 'SQLDBATools') {
+            "SQLDBATools Module was installed using Install-Module cmdlet" | Write-Host
+            "Trying to check for previous version 'Set-SdtEnvironmentVariables.ps1' file" | Write-Host
+            $previousModule = Get-Module SQLDBATools -ListAvailable | Where-Object {$_.ModuleBase -like "$(Split-Path $SdtModulePath -Parent)*" -and $_.Version -ne $SdtModuleVersion}
+            if([String]::IsNullOrEmpty($previousModule)) {
+                "No previous version installation found. So no settings to import." | Write-Host
+            }
+            else {
+                "Previous version installation found. Trying to import settings from it" | Write-Host
+                $previousEnvFile = "$($previousModule.ModuleBase)\Private\Set-SdtEnvironmentVariables.ps1"
+                if(Test-Path $previousEnvFile) {
+                    Copy-Item $previousEnvFile -Destination $SdtEnvFile | Out-Null;
+                }
+            }
+        }
+        else {
+            "SQLDBATools Module was not installed using Install-Module cmdlet" | Write-Host
+        }
+    }
+    if(-not (Test-Path $previousEnvFile)) {
+        Copy-Item $envFileBase -Destination $SdtEnvFile | Out-Null;
+        Write-Output "Environment file '$SdtEnvFile' created.`nKindly modify the variable values according to your environment";
+    }
+    #& "$SdtEnvFile";
+    Invoke-Command -ScriptBlock { & $SdtEnvFile } -NoNewScope
     $isEnvFileLoaded = $true
 }
 

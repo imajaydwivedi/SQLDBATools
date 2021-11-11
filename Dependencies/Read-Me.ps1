@@ -5,13 +5,16 @@ Remove-Module SQLDBATools
 # Copy files from b/w directories. Ensure not to add '\' at end of path
 cls
 $srcPath = "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools"
-$dstPath = "C:\Program Files\WindowsPowerShell\Modules\SQLDBATools\0.0.6"
+$dstPath = "C:\Program Files\WindowsPowerShell\Modules\SQLDBATools\0.0.7"
 #$srcPath = "C:\Users\Public\Documents\GitHub\SQLDBATools"
 #$dstPath = "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools"
 robocopy $srcPath $dstPath /e /is /it /MT:4 /XD Private
 
 # Import module by manual path specification
+Import-Module SQLDBATools -DisableNameChecking
+Import-Module "C:\Program Files\WindowsPowerShell\Modules\SQLDBATools\0.0.7\SQLDBATools" -DisableNameChecking
 Import-Module "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools" -DisableNameChecking
+
 
 # Unblock files if getting untrusted non signed warnings
 Get-ChildItem -Recurse | Unblock-File
