@@ -2,10 +2,15 @@
 Get-Variable Sdt* | Remove-Variable
 Remove-Module SQLDBATools
 
-# Copy files from git clone to $env:psmodulepath
+# Copy files from b/w directories. Ensure not to add '\' at end of path
 cls
-robocopy "C:\Users\Public\Documents\GitHub\SQLDBATools\" "C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\" /e /is /it /MT:4 /XD Private
-robocopy "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\" "C:\Program Files\WindowsPowerShell\Modules\SQLDBATools\0.0.6\" /e /is /it /MT:4 /XD Private
+$srcPath = "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools"
+$dstPath = "C:\Program Files\WindowsPowerShell\Modules\SQLDBATools\0.0.6"
+#$srcPath = "C:\Users\Public\Documents\GitHub\SQLDBATools"
+#$dstPath = "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools"
+robocopy $srcPath $dstPath /e /is /it /MT:4 /XD Private
+
+# Import module by manual path specification
 Import-Module "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools" -DisableNameChecking
 
 # Unblock files if getting untrusted non signed warnings
