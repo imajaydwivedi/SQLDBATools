@@ -2,7 +2,7 @@
     Module Name:-   SQLDBATools
     Created By:-    Ajay Kumar Dwivedi
     Email ID:-      ajay.dwivedi2007@gmail.com
-    Modified Date:- 07-Nov-2021
+    Modified Date:- 11-Nov-2021
     Version:-       0.0.7
 #>
 
@@ -31,12 +31,23 @@ $verbose = $false;
 if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbose[:$false]
     $verbose = $PSBoundParameters.Get_Item('Verbose')
 }
-$isEnvFileLoaded = $false
 
 # Set basic environment variables
 $global:envFileBase = Join-Path $SdtDependenciesPath 'Set-SdtEnvironmentVariables.ps1'
 $global:SdtEnvFile = Join-Path $SdtPrivatePath 'Set-SdtEnvironmentVariables.ps1'
 $global:SdtModuleVersion = (Get-Module -ListAvailable $SdtModulePath).Version
+
+$isEnvFileLoaded = $false
+$blockLoadEnvFile = { & "$SdtEnvFile" }
+
+<#
+$envFileBaseContent = Get-Content $envFileBase | Out-String
+$envFileBaseContent = $envFileBaseContent.Replace('$global:Sdt', '$global:BaseSdt')
+$envFileBaseContent = $envFileBaseContent.Replace('$Sdt', '$BaseSdt')
+$envFileBaseContentBlock = [ScriptBlock]::Create($envFileBaseContent)
+
+Invoke-Command -ScriptBlock $envFileBaseContentBlock -NoNewScope
+#>
 
 # First Load Environment Variables
 # File :Set-EnvironmentVariables.ps1" is also present inside Functions subdirectory with dummy values.
@@ -46,7 +57,7 @@ if($verbose) {
 }
 # If environment variable file present
 if(Test-Path $SdtEnvFile) {
-    & "$SdtEnvFile";
+    Invoke-Command -ScriptBlock $blockLoadEnvFile -NoNewScope
     $isEnvFileLoaded = $true
 
     # Create Logs Directory
@@ -81,8 +92,7 @@ else {
         Copy-Item $envFileBase -Destination $SdtEnvFile | Out-Null;
         Write-Output "Environment file '$SdtEnvFile' created.`nKindly modify the variable values according to your environment";
     }
-    #& "$SdtEnvFile";
-    Invoke-Command -ScriptBlock { & $SdtEnvFile } -NoNewScope
+    Invoke-Command -ScriptBlock $blockLoadEnvFile -NoNewScope
     $isEnvFileLoaded = $true
 }
 
