@@ -10,7 +10,7 @@ RootModule = 'SQLDBATools.psm1'
 
 # Version number of this module.
     # https://jeffbrown.tech/how-to-publish-your-first-powershell-gallery-package/
-ModuleVersion = '0.0.7'
+ModuleVersion = '0.0.8'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -128,7 +128,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Added functions for automatic Disk Space alert management. Newly added functions are Raise-SdtAlert, Alert-SdtDiskSpace, Get-SdtServers, Get-SdtLocalTime & Wrapper-SdtDiskSpace'
+        ReleaseNotes = 'Added functions for automatic Disk Space alert management. Newly added functions are Raise-SdtAlert, Alert-SdtDiskSpace, Get-SdtServers, Get-SdtLocalTime & Wrapper-SdtDiskSpace. Bug Fixes'
 
         # Prerelease string of this module
         # Prerelease = ''
