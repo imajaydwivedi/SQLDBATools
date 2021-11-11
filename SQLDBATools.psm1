@@ -25,7 +25,7 @@ $global:SdtModulePath = Split-Path $MyInvocation.MyCommand.Path -Parent;
 $global:SdtFunctionsPath = Join-Path $SdtModulePath 'Functions'
 $global:SdtPrivatePath = Join-Path $SdtModulePath 'Private'
 $global:SdtDependenciesPath = Join-Path $SdtModulePath 'Dependencies'
-#$global:SdtLogsPath = Join-Path $SdtModulePath 'Logs'
+
 $global:SdtPathSeparator = if($isWin) {'\'} else {'/'}
 $verbose = $false;
 if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbose[:$false]
@@ -33,24 +33,26 @@ if ($PSBoundParameters.ContainsKey('Verbose')) { # Command line specifies -Verbo
 }
 
 # Set basic environment variables
-$global:envFileBase = Join-Path $SdtDependenciesPath 'Set-SdtEnvironmentVariables.ps1'
+$global:SdtBaseEnvFile = Join-Path $SdtDependenciesPath 'Set-SdtEnvironmentVariables.ps1'
 $global:SdtEnvFile = Join-Path $SdtPrivatePath 'Set-SdtEnvironmentVariables.ps1'
 $global:SdtModuleVersion = (Get-Module -ListAvailable $SdtModulePath).Version
+
+# Save variables created within *.psm1 file
+$global:SdtModuleVariables = Get-Variable Sdt*
+
+# Get variables defined in Base Env File on SdtDependenciesPath
+$envFileBaseContent = Get-Content $SdtBaseEnvFile
+$global:SdtBaseEnvVariablesList = @()
+foreach($line in $envFileBaseContent) {
+    if($line -match '^\$global:(?<varName>Sdt\w+)\s') {
+        $global:SdtBaseEnvVariablesList += $Matches['varName']
+    }
+}
 
 $isEnvFileLoaded = $false
 $blockLoadEnvFile = { & "$SdtEnvFile" }
 
-<#
-$envFileBaseContent = Get-Content $envFileBase | Out-String
-$envFileBaseContent = $envFileBaseContent.Replace('$global:Sdt', '$global:BaseSdt')
-$envFileBaseContent = $envFileBaseContent.Replace('$Sdt', '$BaseSdt')
-$envFileBaseContentBlock = [ScriptBlock]::Create($envFileBaseContent)
-
-Invoke-Command -ScriptBlock $envFileBaseContentBlock -NoNewScope
-#>
-
 # First Load Environment Variables
-# File :Set-EnvironmentVariables.ps1" is also present inside Functions subdirectory with dummy values.
 if($verbose) {
     Write-Host "====================================================";
     Write-Host "'Environment Variables are being loaded from '$envFile'.." -ForegroundColor Yellow;
@@ -70,14 +72,14 @@ else {
     if(-not(Test-Path $SdtEnvFile))
     { # check for Env file in Private folder
         if((Split-Path $SdtModulePath -Leaf) -ne 'SQLDBATools') {
-            "SQLDBATools Module was installed using Install-Module cmdlet" | Write-Host
-            "Trying to check for previous version 'Set-SdtEnvironmentVariables.ps1' file" | Write-Host
+            "SQLDBATools Module was installed using Install-Module cmdlet" | Write-Verbose
+            "Trying to check for previous version 'Set-SdtEnvironmentVariables.ps1' file" | Write-Verbose
             $previousModule = Get-Module SQLDBATools -ListAvailable | Where-Object {$_.ModuleBase -like "$(Split-Path $SdtModulePath -Parent)*" -and $_.Version -ne $SdtModuleVersion}
             if([String]::IsNullOrEmpty($previousModule)) {
-                "No previous version installation found. So no settings to import." | Write-Host
+                "No previous version installation found. So no settings to import." | Write-Verbose
             }
             else {
-                "Previous version installation found. Trying to import settings from it" | Write-Host
+                "Previous version installation found. Trying to import settings from it" | Write-Verbose
                 $previousEnvFile = "$($previousModule.ModuleBase)\Private\Set-SdtEnvironmentVariables.ps1"
                 if(Test-Path $previousEnvFile) {
                     Copy-Item $previousEnvFile -Destination $SdtEnvFile | Out-Null;
@@ -85,15 +87,26 @@ else {
             }
         }
         else {
-            "SQLDBATools Module was not installed using Install-Module cmdlet" | Write-Host
+            "SQLDBATools Module was not installed using Install-Module cmdlet" | Write-Verbose
         }
     }
     if(-not (Test-Path $previousEnvFile)) {
-        Copy-Item $envFileBase -Destination $SdtEnvFile | Out-Null;
+        Copy-Item $SdtBaseEnvFile -Destination $SdtEnvFile | Out-Null;
         Write-Output "Environment file '$SdtEnvFile' created.`nKindly modify the variable values according to your environment";
     }
     Invoke-Command -ScriptBlock $blockLoadEnvFile -NoNewScope
     $isEnvFileLoaded = $true
+}
+
+# Validate Private\EnvFile with Dependencies\EnvFile for variable counts
+if($isEnvFileLoaded) {
+    $sdtEnvVariables = (Get-Variable Sdt* -Scope Global | Where-Object {$_.Name -notin @($SdtModuleVariables.Name)})
+    $missingVariables = @()
+    $missingVariables += ($SdtBaseEnvVariablesList | ForEach-Object {if($_ -notin $sdtEnvVariables.Name){$_}})
+
+    if($missingVariables.Count -ne 0) {
+        Write-Error "`n$('*'*60)`nFollowing Environment Variables are missing =>`n$('-'*15)`n$($missingVariables -join ', ')`n$('-'*15)`nKindly copy above specific variables `nfrom `t '$SdtBaseEnvFile' `nto `t`t'$SdtEnvFile'`n`n$('*'*60)`n" -ErrorAction Stop
+    }
 }
 
 $M_dbatools = Get-Module -Name dbatools -ListAvailable -Verbose:$false;
