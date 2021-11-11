@@ -1,11 +1,17 @@
-﻿Get-Variable Sdt* | Remove-Variable
+﻿# Cleanup
+Get-Variable Sdt* | Remove-Variable
 Remove-Module SQLDBATools
 
+# Copy files from git clone to $env:psmodulepath
 cls
 robocopy "C:\Users\Public\Documents\GitHub\SQLDBATools\" "C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\" /e /is /it /MT:4 /XD Private
 robocopy "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\" "C:\Program Files\WindowsPowerShell\Modules\SQLDBATools\0.0.6\" /e /is /it /MT:4 /XD Private
 Import-Module "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools" -DisableNameChecking
 
+# Unblock files if getting untrusted non signed warnings
+Get-ChildItem -Recurse | Unblock-File
+
+# Test function
 Get-SdtServers -Verbose
 
 cls
