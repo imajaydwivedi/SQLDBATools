@@ -6,8 +6,13 @@
         [DateTime]$UTCTime
     )
     $strCurrentTimeZone = (Get-WmiObject win32_timezone).StandardName
-    $TZ = [System.TimeZoneInfo]::FindSystemTimeZoneById($strCurrentTimeZone)
-    $LocalTime = [System.TimeZoneInfo]::ConvertTimeFromUtc($UTCTime, $TZ)
+    if($strCurrentTimeZone -eq 'Coordinated Universal Time') {
+        $LocalTime = $UTCTime
+    }
+    else {
+        $TZ = [System.TimeZoneInfo]::FindSystemTimeZoneById($strCurrentTimeZone)
+        $LocalTime = [System.TimeZoneInfo]::ConvertTimeFromUtc($UTCTime, $TZ)
+    }
     
     $LocalTime | Write-Output
 }
