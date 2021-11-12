@@ -3,7 +3,7 @@
     Created By:-    Ajay Kumar Dwivedi
     Email ID:-      ajay.dwivedi2007@gmail.com
     Modified Date:- 12-Nov-2021
-    Version:-       0.0.8
+    Version:-       0.0.9
 #>
 
 Push-Location;
@@ -74,7 +74,9 @@ else {
         if((Split-Path $SdtModulePath -Leaf) -ne 'SQLDBATools') {
             "SQLDBATools Module was installed using Install-Module cmdlet" | Write-Verbose
             "Trying to check for previous version 'Set-SdtEnvironmentVariables.ps1' file" | Write-Verbose
-            $previousModule = Get-Module SQLDBATools -ListAvailable | Where-Object {$_.ModuleBase -like "$(Split-Path $SdtModulePath -Parent)*" -and $_.Version -ne $SdtModuleVersion}
+            $previousModule = Get-Module SQLDBATools -ListAvailable `
+                                    | Where-Object {$_.ModuleBase -like "$(Split-Path $SdtModulePath -Parent)*" -and $_.Version -lt $SdtModuleVersion} `
+                                    | Sort-Object Version -Descending | Select-Object -First 1
             if([String]::IsNullOrEmpty($previousModule)) {
                 "No previous version installation found. So no settings to import." | Write-Verbose
             }
