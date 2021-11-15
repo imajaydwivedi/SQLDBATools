@@ -34,9 +34,10 @@ cls
 
 cls
 $servers = @($SdtInventoryInstance,'SqlProd1')
-& 'C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1' `
-        -ComputerName $servers -DelayMinutes 2 `
+& "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
+        -DelayMinutes 2 `
         -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
+        -ComputerName $servers `
         -Verbose -Debug
 
 cls

@@ -51,6 +51,7 @@
         $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
     }
 
+    # Get current alert details from Inventory
     $currentAlert = @()
     $currentAlert += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
                 -Query "select * from $SdtAlertTable a with (nolock) where alert_key = '$Subject' and state in ('active','suppressed')";
@@ -61,7 +62,7 @@
     {
         Write-Verbose "Alert is inactive, but history is found."
         Write-Verbose "Clearing mail notification.."
-        Send-MailMessage @mailParams -Subject $Subject -Body $Body -Priority $Priority
+        Send-MailMessage @mailParams -Subject "[CLEARED] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Priority $Priority
         
         Write-Verbose "Marking cleared in alert table.."
         $alertUpdateSql = @"
@@ -81,18 +82,21 @@ where alert_key = '$Subject' and state in ('active','suppressed')
         Write-Verbose "No existing alert found for '$Subject'"
         Write-Verbose "Creating alert in alert table.."
         $alertUpdateSql = @"
-set nocount on; 
+set nocount on;
 insert $SdtAlertTable (alert_key, email_to, severity)
 select '$Subject', '$($To -join ',')', '$Severity';
+
+select SCOPE_IDENTITY() as id;
 "@
-        Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException
+        $generatedAlertId = 0;
+        $generatedAlertId = Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException | Select-Object -ExpandProperty id;
 
         Write-Verbose "Sending mail notification.."
         if([String]::IsNullOrEmpty($Attachments)) {
-            Send-MailMessage @mailParams -Subject $Subject -Body $Body -Priority $Priority
+            Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - $Subject" -Body $Body -Priority $Priority
         }
         else {
-            Send-MailMessage @mailParams -Subject $Subject -Body $Body -Attachments $Attachments
+            Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - $Subject" -Body $Body -Attachments $Attachments
         }
     }
 
@@ -135,10 +139,10 @@ where alert_key = '$Subject' and state in ('active','suppressed')
         {
             Write-Verbose "Sending mail notification.."
             if([String]::IsNullOrEmpty($Attachments)) {
-                Send-MailMessage @mailParams -Subject $Subject -Body $Body -Priority $Priority 
+                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Priority $Priority 
             }
             else {
-                Send-MailMessage @mailParams -Subject $Subject -Body $Body -Attachments $Attachments -Priority $Priority
+                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Attachments $Attachments -Priority $Priority
             }
         }
     }
