@@ -151,7 +151,7 @@
                                     'FreePercent', 'DashboardURL'
                 }
         $content = $alertResult | Sort-Object -Property Severity, Server | ConvertTo-EnhancedHTMLFragment @params
-        $body = "$SdtCssStyle $title $content $footer" | Out-String
+        $body = "<html><head>$SdtCssStyle</head><body> $title $content $footer </body></html>" | Out-String
 
         if($criticalDisksCount -gt 0) { $priority = 'High' } else { $priority = 'Normal' }
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' to generate alert notification.." | Write-Output
