@@ -112,6 +112,8 @@
     $subject = "Alert-SdtDiskSpace"
     $footer = "<p>Report Generated @ $(Get-Date -format 'yyyy-MM-dd HH.mm.ss')</p>"
 
+    Write-Debug "Inside Alert-SdtDiskSpace"
+
     if($jobsResultFiltered.Count -gt 0)
     {
         $jobsResultFiltered | Add-Member -MemberType ScriptProperty -Name "Severity" -Value { if($this.PercentUsed -ge $CriticalThresholdPercent) {'CRITICAL'} else {'WARNING'} }
@@ -153,7 +155,7 @@
 
         if($criticalDisksCount -gt 0) { $priority = 'High' } else { $priority = 'Normal' }
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' to generate alert notification.." | Write-Output
-        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority $priority -Severity High -BodyAsHtml -DelayMinutes $DelayMinutes
+        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -ServersAffected $alertServers -Priority $priority -Severity High -BodyAsHtml -DelayMinutes $DelayMinutes
     }
     else {
         $content = '<p style="color:blue">Alert has cleared. No action pending</p>'

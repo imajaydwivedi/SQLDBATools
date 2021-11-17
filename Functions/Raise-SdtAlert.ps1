@@ -7,6 +7,8 @@
         [Parameter(Mandatory=$true)]
         [string]$Body,
         [Parameter(Mandatory=$false)]
+        [string[]]$ServersAffected,
+        [Parameter(Mandatory=$false)]
         [string[]]$To = @($SdtDBAGroupMailId),
         [Parameter(Mandatory=$false, ParameterSetName="Email")]
         [string[]]$Attachments,
@@ -83,8 +85,8 @@ where alert_key = '$Subject' and state in ('active','suppressed')
         Write-Verbose "Creating alert in alert table.."
         $alertUpdateSql = @"
 set nocount on;
-insert $SdtAlertTable (alert_key, email_to, severity)
-select '$Subject', '$($To -join ',')', '$Severity';
+insert $SdtAlertTable (alert_key, email_to, severity, servers_affected)
+select '$Subject', '$($To -join ',')', '$Severity', $( if($ServersAffected.Count -gt 0){"'"+($ServersAffected -join '; ')+"'"}else{'null'} );
 
 select SCOPE_IDENTITY() as id;
 "@

@@ -33,7 +33,7 @@ cls
         -Verbose -Debug
 
 cls
-$servers = @($SdtInventoryInstance,'SqlProd1')
+$servers = @('SqlDr1')
 & "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
         -DelayMinutes 2 `
         -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
@@ -41,8 +41,8 @@ $servers = @($SdtInventoryInstance,'SqlProd1')
         -Verbose -Debug
 
 cls
-$servers = @($SdtInventoryInstance)
-Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 20 -CriticalThresholdPercent 50 -DelayMinutes 5 -Verbose -Debug
+$servers = @('SqlDr1')
+Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 50 -CriticalThresholdPercent 85 -DelayMinutes 1 -Verbose -Debug
 
 # CmdExec Step Type with below format of Script Call. Try both of these methods in command prompt first
 powershell.exe -executionpolicy bypass -Noninteractive C:\Program` Files\WindowsPowerShell\Modules\SQLDBATools\0.0.8\Wrapper\Wrapper-SdtDiskSpace.ps1 -WarningThresholdPercent 30 -CriticalThresholdPercent 50 -DelayMinutes 2
