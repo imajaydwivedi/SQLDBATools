@@ -65,9 +65,14 @@ select DATEDIFF(minute,last_notified_date_utc,GETUTCDATE()) as last_notified_min
 		*
 --update a set [state] = 'Suppressed', suppress_start_date_utc = GETUTCDATE(), suppress_end_date_utc = DATEADD(minute,20,GETUTCDATE())
 --update a set [state] = 'Suppressed', suppress_end_date_utc = DATEADD(minute,2,suppress_start_date_utc)
+--delete a
 from dbo.sdt_alert a with (nolock)
-where alert_key = 'Alert-SdtDiskSpace'
+--where alert_key = 'Alert-SdtDiskSpace'
 order by created_date_utc desc
+go
+
+select *
+from dbo.sdt_alert_rules ar
 go
 #>
 
