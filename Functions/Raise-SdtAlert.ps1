@@ -7,15 +7,15 @@
         [Parameter(Mandatory=$true)]
         [string]$Body,
         [Parameter(Mandatory=$false)]
-        [string[]]$ServersAffected,
+        [string[]]$ServersAffected = @(),
         [Parameter(Mandatory=$false)]
-        [string[]]$DatabaseName,
+        [string[]]$DatabaseName = @(),
         [Parameter(Mandatory=$false)]
-        [string[]]$ClientAppName,
+        [string[]]$ClientAppName = @(),
         [Parameter(Mandatory=$false)]
-        [string[]]$LoginName,
+        [string[]]$LoginName = @(),
         [Parameter(Mandatory=$false)]
-        [string[]]$ClientHostName,
+        [string[]]$ClientHostName = @(),
         [Parameter(Mandatory=$false)][ValidateSet('Critical', 'High', 'Medium', 'Low')]
         $Severity = 'High',
         [Parameter(Mandatory=$false)]
@@ -35,123 +35,142 @@
         [Switch]$ClearAlert
     )
 
-    # Declare local variables
-    $alert = $true
-    if ($ClearAlert) {
-        $alert = $false
-    }
-
-    $alertTime = Get-Date
-    $alertTimeUTC = (Get-Date).ToUniversalTime()
-    $alertTimeString = $alertTime.ToString('yyyy-MM-dd HH.mm.ss')
-        
-    $lastOccurredDateUTC = $alertTimeUTC
-    $lastNotifiedDateUTC = $alertTimeUTC
-    $newOccurredDateUTC = $alertTimeUTC
-    $newNotifiedDateUTC = $alertTimeUTC
-        
-    Write-Debug "Inside Raise-SdtAlert.ps1"
-
-    # Setup mail profiles
-    if($SdtSmtpServer -eq 'smtp.gmail.com') {
-        $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; Credential = $SdtSmtpGmailCredential; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
-    } else {
-        $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
-    }
-
-    # Get current alert details from Inventory
-    $currentAlert = @()
-    $currentAlert += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
-                -Query "select * from $SdtAlertTable a with (nolock) where alert_key = '$Subject' and state in ('active','suppressed')";
-    
-    
-    # if alert is not active and history is found, then clear history
-    if($ClearAlert -and $currentAlert.Count -gt 0)
+    $isCustomError = $false
+    try
     {
-        Write-Verbose "Alert is inactive, but history is found."
-        Write-Verbose "Clearing mail notification.."
-        Send-MailMessage @mailParams -Subject "[CLEARED] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Priority $Priority
-        
-        Write-Verbose "Marking cleared in alert table.."
-        $alertUpdateSql = @"
-set nocount on; 
-update a 
-set [state] = 'Cleared', last_occurred_date_utc = '$($newOccurredDateUTC.ToString('yyyy-MM-dd HH:mm:ss.fff'))'
-from $SdtAlertTable a --with (nolock) 
-where alert_key = '$Subject' and state in ('active','suppressed')
-"@
-        Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException
-    }
-
-    # if alert is active but not found in history, then send mail notification and add entry into alert table
-    if( (-not $ClearAlert) -and $currentAlert.Count -eq 0) 
-    {
+        # Declare local variables
         $alert = $true
-        Write-Verbose "No existing alert found for '$Subject'"
-        Write-Verbose "Creating alert in alert table.."
-        $alertUpdateSql = @"
-set nocount on;
-insert $SdtAlertTable (alert_key, email_to, severity, servers_affected)
-select '$Subject', '$($To -join ',')', '$Severity', $( if($ServersAffected.Count -gt 0){"'"+($ServersAffected -join '; ')+"'"}else{'null'} );
-
-select SCOPE_IDENTITY() as id;
-"@
-        $generatedAlertId = 0;
-        $generatedAlertId = Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException | Select-Object -ExpandProperty id;
-
-        Write-Verbose "Sending mail notification.."
-        if([String]::IsNullOrEmpty($Attachments)) {
-            Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - $Subject" -Body $Body -Priority $Priority
-        }
-        else {
-            Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - $Subject" -Body $Body -Attachments $Attachments
-        }
-    }
-
-    # if alert is active, and present in history. Then update history
-    if( (-not $ClearAlert) -and $currentAlert.Count -ne 0 ) 
-    {
-        Write-Verbose "Alert found for '$Subject' in alert table."
-        $lastOccurredDateUTC = $currentAlert[0].last_occurred_date_utc
-        $lastNotifiedDateUTC = $currentAlert[0].last_notified_date_utc        
-
-        # if alert is out of $DelayMinutes
-        if ($lastNotifiedDateUTC -le $alertTimeUTC.AddMinutes(-$DelayMinutes)) {
-            $alert = $true
-        }
-        else { # no alert please
+        if ($ClearAlert) {
             $alert = $false
-            $newNotifiedDateUTC = $lastNotifiedDateUTC
-            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Raise-SdtAlert => Last alert was sent @ $((Get-SdtLocalTime $lastNotifiedDateUTC).ToString('yyyy-MM-dd HH.mm.ss'))" | Write-Output
-            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Raise-SdtAlert => Last alert is within `$DelayMinutes ($DelayMinutes). So skipping current alert." | Write-Output
         }
 
-        if( ($currentAlert[0].state -eq 'Suppressed') -and ($alertTimeUTC -ge $currentAlert[0].suppress_start_date_utc -and $alertTimeUTC -le $currentAlert[0].suppress_end_date_utc) ) {
-            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Alert '$Subject' is in suppressed state." | Write-Output
-            $alert = $false
-            $newNotifiedDateUTC = $lastNotifiedDateUTC
+        $alertTime = Get-Date
+        $alertTimeUTC = (Get-Date).ToUniversalTime()
+        $alertTimeString = $alertTime.ToString('yyyy-MM-dd HH.mm.ss')
+        
+        $lastOccurredDateUTC = $alertTimeUTC
+        $lastNotifiedDateUTC = $alertTimeUTC
+        $newOccurredDateUTC = $alertTimeUTC
+        $newNotifiedDateUTC = $alertTimeUTC
+        
+        #Write-Debug "Inside Raise-SdtAlert.ps1"
+
+        # Setup mail profiles
+        Write-Verbose "Setup mail profiles in `$mailParams"
+        if($SdtSmtpServer -eq 'smtp.gmail.com') {
+            $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; Credential = $SdtSmtpGmailCredential; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
+        } else {
+            $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
         }
 
-        Write-Verbose "Updating alert in alert table.."
-        $alertUpdateSql = @"
-set nocount on; 
-update a 
-set last_occurred_date_utc = '$($newOccurredDateUTC.ToString('yyyy-MM-dd HH:mm:ss.fff'))'
-    $(if($alert){",last_notified_date_utc = '$($newNotifiedDateUTC.ToString('yyyy-MM-dd HH:mm:ss.fff'))', notification_counts += 1"})
-from $SdtAlertTable a with (nolock) 
-where alert_key = '$Subject' and state in ('active','suppressed')
-"@
-        Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException
-
-        if($alert)
+        # Get current alert details from Inventory
+        Write-Verbose "Get current alert details from Inventory for AlertKey"
+        $currentAlert = @()
+        $currentAlert += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+                    -Query "select * from $SdtAlertTable a with (nolock) where alert_key = '$Subject' and state in ('active','suppressed')";
+    
+        #1/0;
+        # if alert is not active and history is found, then clear history
+        Write-Verbose "Evaluate => (`$ClearAlert -and `$currentAlert.Count -gt 0)"
+        if($ClearAlert -and $currentAlert.Count -gt 0)
         {
+            Write-Verbose "Alert is inactive, but history is found."
+            Write-Verbose "Clearing mail notification.."
+            Send-MailMessage @mailParams -Subject "[CLEARED] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Priority $Priority
+        
+            Write-Verbose "Marking cleared in alert table.."
+            $alertUpdateSql = @"
+    set nocount on; 
+    update a 
+    set [state] = 'Cleared', last_occurred_date_utc = '$($newOccurredDateUTC.ToString('yyyy-MM-dd HH:mm:ss.fff'))'
+    from $SdtAlertTable a --with (nolock) 
+    where alert_key = '$Subject' and state in ('active','suppressed')
+"@
+            Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException
+        }
+
+        # if alert is active but not found in history, then send mail notification and add entry into alert table
+        Write-Verbose "Evaluate => ( (-not `$ClearAlert) -and `$currentAlert.Count -eq 0) "
+        if( (-not $ClearAlert) -and $currentAlert.Count -eq 0) 
+        {
+            $alert = $true
+            Write-Verbose "No existing alert found for '$Subject'"
+            Write-Verbose "Creating alert in alert table.."
+            $alertUpdateSql = @"
+    set nocount on;
+    insert $SdtAlertTable (alert_key, email_to, severity, servers_affected)
+    select '$Subject', '$($To -join ',')', '$Severity', $( if($ServersAffected.Count -gt 0){"'"+($ServersAffected -join '; ')+"'"}else{'null'} );
+
+    select SCOPE_IDENTITY() as id;
+"@
+            $generatedAlertId = 0;
+            $generatedAlertId = Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException | Select-Object -ExpandProperty id;
+
             Write-Verbose "Sending mail notification.."
             if([String]::IsNullOrEmpty($Attachments)) {
-                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Priority $Priority 
+                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - $Subject" -Body $Body -Priority $Priority
             }
             else {
-                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Attachments $Attachments -Priority $Priority
+                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - $Subject" -Body $Body -Attachments $Attachments
             }
+        }
+
+        # if alert is active, and present in history. Then update history
+        Write-Verbose "Evaluate => ( (-not $ClearAlert) -and $currentAlert.Count -ne 0 ) "
+        if( (-not $ClearAlert) -and $currentAlert.Count -ne 0 )
+        {
+            Write-Verbose "Alert found for '$Subject' in alert table."
+            $lastOccurredDateUTC = $currentAlert[0].last_occurred_date_utc
+            $lastNotifiedDateUTC = $currentAlert[0].last_notified_date_utc        
+
+            # if alert is out of $DelayMinutes
+            if ($lastNotifiedDateUTC -le $alertTimeUTC.AddMinutes(-$DelayMinutes)) {
+                $alert = $true
+            }
+            else { # no alert please
+                $alert = $false
+                $newNotifiedDateUTC = $lastNotifiedDateUTC
+                "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Raise-SdtAlert => Last alert was sent @ $((Get-SdtLocalTime $lastNotifiedDateUTC).ToString('yyyy-MM-dd HH.mm.ss'))" | Write-Output
+                "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Raise-SdtAlert => Last alert is within `$DelayMinutes ($DelayMinutes). So skipping current alert." | Write-Output
+            }
+
+            if( ($currentAlert[0].state -eq 'Suppressed') -and ($alertTimeUTC -ge $currentAlert[0].suppress_start_date_utc -and $alertTimeUTC -le $currentAlert[0].suppress_end_date_utc) ) {
+                "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Alert '$Subject' is in suppressed state." | Write-Output
+                $alert = $false
+                $newNotifiedDateUTC = $lastNotifiedDateUTC
+            }
+
+            Write-Verbose "Updating alert in alert table.."
+            $alertUpdateSql = @"
+    set nocount on; 
+    update a 
+    set last_occurred_date_utc = '$($newOccurredDateUTC.ToString('yyyy-MM-dd HH:mm:ss.fff'))'
+        $(if($alert){",last_notified_date_utc = '$($newNotifiedDateUTC.ToString('yyyy-MM-dd HH:mm:ss.fff'))', notification_counts += 1"})
+    from $SdtAlertTable a with (nolock) 
+    where alert_key = '$Subject' and state in ('active','suppressed')
+"@
+            Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException
+
+            if($alert)
+            {
+                Write-Verbose "Sending mail notification.."
+                if([String]::IsNullOrEmpty($Attachments)) {
+                    Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Priority $Priority 
+                }
+                else {
+                    Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Attachments $Attachments -Priority $Priority
+                }
+            }
+        }
+    }
+    catch {
+        $errMessage = $_;
+        $isCustomError = $true
+        $_ | Write-Warning
+    }
+    finally {
+        if($isCustomError) {
+            throw $errMessage
         }
     }
 <#

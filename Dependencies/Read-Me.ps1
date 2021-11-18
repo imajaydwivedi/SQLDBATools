@@ -36,9 +36,9 @@ cls
 $servers = @('SqlDr1')
 & "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
         -DelayMinutes 2 `
-        -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
+        -WarningThresholdPercent 50 -CriticalThresholdPercent 85 -Verbose `
         -EmailTo 'ajay.dwivedi2007@gmail.com' -ComputerName $servers `
-        -Verbose -Debug
+        -Debug
 
 cls
 $servers = @('SqlDr1')
