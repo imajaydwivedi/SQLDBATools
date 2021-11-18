@@ -35,6 +35,14 @@
         [Switch]$ClearAlert
     )
 
+    # Set Initial Variables
+    $startTime = Get-Date
+    $dtmm = $startTime.ToString('yyyy-MM-dd HH.mm.ss')
+    $script = $MyInvocation.MyCommand.Name
+    if([String]::IsNullOrEmpty($Script)) {
+        $Script = 'Alert-SdtDiskSpace'
+    }
+
     $isCustomError = $false
     try
     {
@@ -165,6 +173,7 @@
     }
     catch {
         $errMessage = $_;
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Something went wrong. Inside catch block of '$script'." | Tee-Object $executionLogFile -Append | Write-Output
         $isCustomError = $true
         $_ | Write-Warning
     }

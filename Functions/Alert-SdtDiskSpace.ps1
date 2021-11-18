@@ -17,6 +17,14 @@
         [int]$DelayMinutes = 60
     )
 
+    # Set Initial Variables
+    $startTime = Get-Date
+    $dtmm = $startTime.ToString('yyyy-MM-dd HH.mm.ss')
+    $script = $MyInvocation.MyCommand.Name
+    if([String]::IsNullOrEmpty($Script)) {
+        $Script = 'Alert-SdtDiskSpace'
+    }
+
     Try 
     {
         $isCustomError = $false
@@ -74,7 +82,7 @@
         if($jobs_exception.Count -gt 0 ) {   
             $alertHost = $jobs_exception | Select-Object -ExpandProperty Name -First 1
             $isCustomError = $true
-            $errMessage = "`nBelow jobs either timed or failed-`n$($jobs_exception | Select-Object Name, State, HasErrors | Out-String)"
+            $errMessage = "`nBelow jobs either timed or failed-`n$($jobs_exception | Select-Object Name, State, HasErrors | Format-Table -AutoSize | Out-String)"
             $failCount = $jobs_fail.Count
             $failCounter = 0
             foreach($job in $jobs_fail) {
@@ -141,7 +149,7 @@
             $body = "<html><head>$SdtCssStyle</head><body> $title $content $footer </body></html>" | Out-String
 
             if($criticalDisksCount -gt 0) { $priority = 'High' } else { $priority = 'Normal' }
-            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' to generate alert notification.." | Write-Output
+            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' with alert key '$subject'.." | Write-Output
             Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -ServersAffected $alertServers -Priority $priority -Severity High -BodyAsHtml -DelayMinutes $DelayMinutes
         }
         else {
@@ -153,6 +161,7 @@
     }
     catch {
         $errMessage = $_;
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Something went wrong. Inside catch block of '$script'." | Tee-Object $executionLogFile -Append | Write-Output
         $isCustomError = $true
         $_ | Write-Warning
     }

@@ -41,22 +41,24 @@ $verboseDebugPreferences = @{Verbose = $verbose; Debug = $debug}
 # Load SQLDBATools
 $isModuleFileLoaded = $false
 if(Get-Module SQLDBATools) {
-    Write-Verbose "Module SQLDBATools already imported in session."
+    Write-Output "Module SQLDBATools already imported in session."
     $isModuleFileLoaded = $true
 }
 else {
+    Write-Output "Looking for location of SQLDBATools module to import.."
     $commandPath = Split-Path $MyInvocation.MyCommand.Path -Parent;
     $modulePathBasedOnWrapperLocation = Split-Path $PSScriptRoot -Parent;
     $moduleFileBasedOnWrapperLocation = Join-Path $modulePathBasedOnWrapperLocation 'SQLDBATools.psm1';
 
     if( Test-Path $moduleFileBasedOnWrapperLocation )  {
-        Write-Verbose "Module file found based on wrapper file location"
-        Import-Module $moduleFileBasedOnWrapperLocation -DisableNameChecking
+        Write-Output "Module file found based on wrapper file location"
+        "Import-Module `"$moduleFileBasedOnWrapperLocation`" -DisableNameChecking" | Write-Output
+        Import-Module "$moduleFileBasedOnWrapperLocation" -DisableNameChecking
         $isModuleFileLoaded = $true
     }
 
     if(-not $isModuleFileFound) {
-        Write-Verbose "Loading module from `$env:PSModulePath"
+        Write-Output "Loading module from `$env:PSModulePath"
         Import-Module SQLDBATools -DisableNameChecking
         $isModuleFileLoaded = $true
     }
@@ -69,8 +71,8 @@ if([String]::IsNullOrEmpty($EmailTo)) {
 }
 
 # Log files
-$statusLogFile = $(Join-Path $SdtLogsPath $($Script.Replace('.ps1','__Status.log')))
-$executionLogFile = $(Join-Path $SdtLogsPath $($Script.Replace('.ps1',"__Log__$($dtmm).log")))
+$statusLogFile = $(Join-Path $SdtLogsPath $($Script.Replace('.ps1','__Status.txt')))
+$executionLogFile = $(Join-Path $SdtLogsPath $($Script.Replace('.ps1',"__Log__$($dtmm).txt")))
 
 # Set Error variables
 "`n{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(START)","Execute script '$Script'.." | Tee-Object $executionLogFile -Append | % {"`n`n`n`n`n$_"} | Write-Output
@@ -83,7 +85,7 @@ if( ($PSCmdlet -ne $null -and $PSCmdlet.MyInvocation.BoundParameters["Verbose"].
 
 # Remove Old log files
 "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Remove log files older than $LogRetentionMinutes minutes.." | Tee-Object $executionLogFile -Append | Write-Output
-Get-ChildItem -Path "$SdtLogsPath\$($Script.Replace('.ps1',"__Log__*.log"))" -Force `
+Get-ChildItem -Path "$SdtLogsPath\$($Script.Replace('.ps1',"__Log__*.txt"))" -Force `
         | Where-Object {$_.PSIsContainer -eq $false -and $_.LastAccessTime -lt (Get-Date).AddMinutes(-$LogRetentionMinutes) } `
         | Remove-Item | Out-Null
 
@@ -127,7 +129,7 @@ catch {
     $lastRunStatus += 1;
     $lastRunStatus | Out-File $statusLogFile
 
-    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Something went wrong. Inside catch block." | Tee-Object $executionLogFile -Append | Write-Output
+    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Something went wrong. Inside catch block of '$script'." | Tee-Object $executionLogFile -Append | Write-Output
     "`n$('*'*40)`n" | Out-File $executionLogFile -Append
     $errMessage | Out-File $executionLogFile -Append
     "$('*'*40)`n" | Out-File $executionLogFile -Append
@@ -136,13 +138,16 @@ catch {
     {
         $subject = "[$($Script.Replace('.ps1',''))] - Failed"
         $footer = "<p>Alert Created @ $(Get-Date -format 'yyyy-MMM-dd HH.mm.ss')</p>"
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Sending failure mail notification using Raise-SdtAlert.." | Tee-Object $executionLogFile -Append | Write-Output
-        Raise-SdtAlert @verboseDebugPreferences -To $EmailTo -Subject $subject -BodyAsHtml -Priority High -DelayMinutes $DelayMinutes `
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' with alert key '$subject'.." | Tee-Object $executionLogFile -Append | Write-Output
+        Raise-SdtAlert @verboseDebugPreferences -To $EmailTo -Subject $subject -BodyAsHtml -Attachments "$executionLogFile" -Priority High -DelayMinutes $DelayMinutes `
                 -Body @"
 $SdtCssStyle
 <h2><span class=blue>$($Script.Replace('.ps1',''))</span> failed for <span class=red>$lastRunStatus</span> times continously</h2>
 <p>Error =></p>
-<p style="color:red">$errMessage</p>
+<p style="color:red">
+$($errMessage.Exception.Message.Split("`n") | % {"$_<br>"})
+<br><br>-- For details analysis, kindly read log file '$executionLogFile'
+</p>
 <br>$('-'*50)<br>$footer
 "@
     }
