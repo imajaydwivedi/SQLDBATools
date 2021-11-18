@@ -9,21 +9,27 @@
         [Parameter(Mandatory=$false)]
         [string[]]$ServersAffected,
         [Parameter(Mandatory=$false)]
-        [string[]]$To = @($SdtDBAGroupMailId),
-        [Parameter(Mandatory=$false, ParameterSetName="Email")]
-        [string[]]$Attachments,
-        [Parameter(Mandatory=$false, ParameterSetName="Email")]
-        [Switch]$BodyAsHtml,
-        [Parameter(Mandatory=$false, ParameterSetName="Email")]
-        [string]$SmtpServer = $SdtSmtpServer,
-        [Parameter(Mandatory=$false, ParameterSetName="Email")]
-        [int]$Port = $SdtSmtpServerPort,
-        [Parameter(Mandatory=$false, ParameterSetName="Email")][ValidateSet('Normal', 'High', 'Low')]
-        $Priority = 'Normal',
+        [string[]]$DatabaseName,
+        [Parameter(Mandatory=$false)]
+        [string[]]$ClientAppName,
+        [Parameter(Mandatory=$false)]
+        [string[]]$LoginName,
+        [Parameter(Mandatory=$false)]
+        [string[]]$ClientHostName,
         [Parameter(Mandatory=$false)][ValidateSet('Critical', 'High', 'Medium', 'Low')]
         $Severity = 'High',
-        [Parameter(Mandatory=$false)][ValidateSet('Email', 'Slack', 'MSTeams')]
-        $AlertType = 'Email',
+        [Parameter(Mandatory=$false)]
+        [string[]]$To = @($SdtDBAGroupMailId),
+        [Parameter(Mandatory=$false)]
+        [string[]]$Attachments,
+        [Parameter(Mandatory=$false)]
+        [Switch]$BodyAsHtml,
+        [Parameter(Mandatory=$false)]
+        [string]$SmtpServer = $SdtSmtpServer,
+        [Parameter(Mandatory=$false)]
+        [int]$Port = $SdtSmtpServerPort,
+        [Parameter(Mandatory=$false)][ValidateSet('Normal', 'High', 'Low')]
+        $Priority = 'Normal',
         [Parameter(Mandatory=$false)]
         [int]$DelayMinutes = 15,
         [Switch]$ClearAlert
@@ -159,6 +165,18 @@ where alert_key = '$Subject' and state in ('active','suppressed')
     Text of alert body
 .PARAMETER AlertKey
     String that uniquely identifies the Alert. Based on alert key, existing alert is found & cleared when required.
+.PARAMETER ServersAffected
+    List of servers that are impacted in this Alert.
+.PARAMETER DatabaseName
+    List of Databases that are impacted in this Alert.
+.PARAMETER ClientAppName
+    List of program names from sys.dm_exec_sessions that are impacted in this Alert.
+.PARAMETER LoginName
+    List of login names from sys.dm_exec_sessions that are impacted in this Alert.
+.PARAMETER ClientHostName
+    List of host names from sys.dm_exec_sessions that are impacted in this Alert.
+.PARAMETER Severity
+    Severity of the alert issue. Possible values are Low, Medium, High, Critical
 .PARAMETER To 
     Receiver of alert. Could be comma separated list of email addresses, slack channel or team channel name.
 .PARAMETER Attachments
@@ -171,8 +189,6 @@ where alert_key = '$Subject' and state in ('active','suppressed')
     SMTP Server port
 .PARAMETER Priority
     Email priority. Possible values are Normal, High, Low. Default is Normal.
-.PARAMETER AlertType
-    Alert type. Possible values are Email, Slack, MSTeams. Default is Email.
 .PARAMETER ClearAlert
     When this switch is used, alert matching by Alert Key would be cleared.
 .EXAMPLE

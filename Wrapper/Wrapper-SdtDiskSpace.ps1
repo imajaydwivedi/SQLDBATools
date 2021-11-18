@@ -10,8 +10,6 @@ Param (
     [Parameter(Mandatory=$false)]
     [decimal]$CriticalThresholdPercent = 85.0,
     [Parameter(Mandatory=$false)]
-    [string]$ThresholdTable = 'dbo.sdt_disk_space_threshold',
-    [Parameter(Mandatory=$false)]
     [int]$FailureNotifyThreshold = 3,
     [Parameter(Mandatory=$false)]
     [string[]]$EmailTo,
@@ -107,7 +105,8 @@ try
     "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Execute Alert-SdtDiskSpace.." | Write-Output
     #1/0;
     Alert-SdtDiskSpace -ComputerName $ComputerName -DelayMinutes $DelayMinutes -WarningThresholdPercent $WarningThresholdPercent `
-                -CriticalThresholdPercent $CriticalThresholdPercent | Tee-Object $executionLogFile
+                -CriticalThresholdPercent $CriticalThresholdPercent -ExcludeDrive $ExcludeDrive -EmailTo $EmailTo `
+                | Tee-Object $executionLogFile
 
     "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","End of try block of $script.." | Tee-Object $executionLogFile | Write-Output
     0 | Out-File $statusLogFile

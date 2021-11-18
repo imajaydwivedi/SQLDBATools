@@ -12,8 +12,6 @@
         [Parameter(Mandatory=$false)]
         [decimal]$CriticalThresholdPercent = 90.0,
         [Parameter(Mandatory=$false)]
-        [string]$ThresholdTable = 'dbo.sdt_disk_space_threshold',
-        [Parameter(Mandatory=$false)]
         [string[]]$EmailTo = @($SdtDBAMailId),
         [Parameter(Mandatory=$false)]
         [int]$DelayMinutes = 60

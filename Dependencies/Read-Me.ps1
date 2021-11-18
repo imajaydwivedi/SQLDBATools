@@ -37,7 +37,7 @@ $servers = @('SqlDr1')
 & "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
         -DelayMinutes 2 `
         -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
-        -ComputerName $servers `
+        -EmailTo 'ajay.dwivedi2007@gmail.com' -ComputerName $servers `
         -Verbose -Debug
 
 cls
@@ -69,10 +69,16 @@ select DATEDIFF(minute,last_notified_date_utc,GETUTCDATE()) as last_notified_min
 from dbo.sdt_alert a with (nolock)
 --where alert_key = 'Alert-SdtDiskSpace'
 order by created_date_utc desc
+-- truncate table dbo.sdt_alert
 go
 
 select *
 from dbo.sdt_alert_rules ar
 go
+
+--insert dbo.sdt_alert_rules (alert_key, severity, alert_receiver, alert_receiver_name, reference_request)
+--select 'Alert-SdtDiskSpace',NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
+
+
 #>
 
