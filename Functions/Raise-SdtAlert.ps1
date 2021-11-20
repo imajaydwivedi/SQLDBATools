@@ -8,14 +8,6 @@
         [string]$Body,
         [Parameter(Mandatory=$false)]
         [string[]]$ServersAffected = @(),
-        [Parameter(Mandatory=$false)]
-        [string[]]$DatabaseName = @(),
-        [Parameter(Mandatory=$false)]
-        [string[]]$ClientAppName = @(),
-        [Parameter(Mandatory=$false)]
-        [string[]]$LoginName = @(),
-        [Parameter(Mandatory=$false)]
-        [string[]]$ClientHostName = @(),
         [Parameter(Mandatory=$false)][ValidateSet('Critical', 'High', 'Medium', 'Low')]
         $Severity = 'High',
         [Parameter(Mandatory=$false)]
@@ -76,7 +68,7 @@
         $currentAlert = @()
         $currentAlert += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
                     -Query "select * from $SdtAlertTable a with (nolock) where alert_key = '$Subject' and state in ('active','suppressed')";
-    
+
         #1/0;
         # if alert is not active and history is found, then clear history
         Write-Verbose "Evaluate => (`$ClearAlert -and `$currentAlert.Count -gt 0)"
@@ -173,7 +165,7 @@
     }
     catch {
         $errMessage = $_;
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Something went wrong. Inside catch block of '$script'." | Tee-Object $executionLogFile -Append | Write-Output
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Something went wrong. Inside catch block of '$script'." | Write-Output
         $isCustomError = $true
         $_ | Write-Warning
     }
@@ -195,14 +187,6 @@
     String that uniquely identifies the Alert. Based on alert key, existing alert is found & cleared when required.
 .PARAMETER ServersAffected
     List of servers that are impacted in this Alert.
-.PARAMETER DatabaseName
-    List of Databases that are impacted in this Alert.
-.PARAMETER ClientAppName
-    List of program names from sys.dm_exec_sessions that are impacted in this Alert.
-.PARAMETER LoginName
-    List of login names from sys.dm_exec_sessions that are impacted in this Alert.
-.PARAMETER ClientHostName
-    List of host names from sys.dm_exec_sessions that are impacted in this Alert.
 .PARAMETER Severity
     Severity of the alert issue. Possible values are Low, Medium, High, Critical
 .PARAMETER To 

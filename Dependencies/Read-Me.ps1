@@ -35,13 +35,13 @@ cls
 cls
 $servers = @('SqlDr1')
 & "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
-        -DelayMinutes 2 `
+        -DelayMinutes 1 `
         -WarningThresholdPercent 50 -CriticalThresholdPercent 85 -Verbose `
         -EmailTo 'ajay.dwivedi2007@gmail.com' -ComputerName $servers `
         -Debug
 
 cls
-$servers = @('SqlDr1')
+$servers = @('SqlProd1','SqlDr1','SqlProd2','SqlDr2','SqlProd3','SqlDr3')
 Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 50 -CriticalThresholdPercent 85 -DelayMinutes 1 -Verbose -Debug
 
 # CmdExec Step Type with below format of Script Call. Try both of these methods in command prompt first
@@ -76,9 +76,36 @@ select *
 from dbo.sdt_alert_rules ar
 go
 
---insert dbo.sdt_alert_rules (alert_key, severity, alert_receiver, alert_receiver_name, reference_request)
---select 'Alert-SdtDiskSpace',NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
+/*
+insert dbo.sdt_alert_rules (alert_key, server_friendly_name, server_owner, severity, alert_receiver, alert_receiver_name, reference_request)
+select 'Alert-SdtDiskSpace','SqlProd1',NULL,NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
+union all
+select 'Alert-SdtDiskSpace','SqlDr1',NULL,NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
+*/
 
+/*
+if object_id('tempdb..#sdt_alert_rules_by_server') is not null
+	drop table #sdt_alert_rules_by_server;
+if object_id('tempdb..#sdt_alert_rules_by_owner') is not null
+	drop table #sdt_alert_rules_by_owner;
 
+select ar.rule_id, ar.alert_key, ar.server_friendly_name, i.server_owner, ar.alert_receiver
+into #sdt_alert_rules_by_server
+from dbo.sdt_alert_rules ar left join dbo.sdt_server_inventory i on i.friendly_name = ar.server_friendly_name
+where ar.alert_key = 'Alert-SdtDiskSpace'
+and ar.server_friendly_name in ('SqlProd1','SqlDr1','SqlProd2','Sqldr2','SqlProd3','SqlDr3')
+
+select ar.rule_id, ar.alert_key, ar.server_friendly_name, i.server_owner, ar.alert_receiver
+into #sdt_alert_rules_by_owner
+from dbo.sdt_server_inventory i left join dbo.sdt_alert_rules ar on i.server_owner = ar.server_owner
+where ar.alert_key = 'Alert-SdtDiskSpace'
+and i.friendly_name in ('SqlProd1','SqlDr1','SqlProd2','Sqldr2','SqlProd3','SqlDr3')
+
+select *
+from #sdt_alert_rules_by_server s
+
+select *
+from #sdt_alert_rules_by_owner o
+*/
 #>
 

@@ -100,14 +100,40 @@
         }
         $jobs | Remove-RSJob -Verbose:$false
 
-        $jobsResultFiltered = @()
-        $jobsResultFiltered += $jobsResult | Where-Object {$_.PercentUsed -ge $WarningThresholdPercent}
-
         #$subject = "Alert-SdtDiskSpace - $(Get-Date -format 'yyyy-MMM-dd')"
         $subject = "Alert-SdtDiskSpace"
         $footer = "<p>Report Generated @ $(Get-Date -format 'yyyy-MM-dd HH.mm.ss')</p>"
 
-        Write-Debug "Inside Alert-SdtDiskSpace"
+        # alert_key, server_friendly_name, [database_name], client_app_name, login_name, client_host_name, severity
+        Write-Debug "Inside $Script"
+
+        # Get alert rules for the alert key
+        Write-Verbose "Get rules for Alert Key '$Subject'"
+        $currentAlertRules = @()
+        $currentAlertRules += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+                    -Query "select * from $SdtAlertRulesTable ar with (nolock) where alert_key = '$Subject' and is_active = 1";
+
+        $tsqlSearchRulesByServerArray = @()
+        foreach($srv in $ComputerName)
+        {
+            $srvFriendlyName = $srv.Split('.')[0]
+            $tsqlSearchRulesByServerArray += @"
+select  alert_key = '$Subject', server_friendly_name = '$srvFriendlyName'
+"@
+        }
+        $tsqlSearchRulesByServer = $tsqlSearchRulesByServerArray -join "`nunion all `n"
+        $tsqlSearchRulesByServer = @"
+;with t_rules_temp as (`n$tsqlSearchRulesByServer`n)
+select alert_key, server_friendly_name, server_owner_name, server_friendly_name, [database_name], client_app_name, login_name, client_host_name, severity
+from t_rules_temp t
+"@
+
+        $jobsResultFiltered = @()
+        $jobsResultFiltered += $jobsResult | Where-Object {$_.PercentUsed -ge $WarningThresholdPercent}
+
+        
+
+        #Write-Debug "Inside Alert-SdtDiskSpace"
 
         if($jobsResultFiltered.Count -gt 0)
         {
@@ -161,7 +187,7 @@
     }
     catch {
         $errMessage = $_;
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Something went wrong. Inside catch block of '$script'." | Tee-Object $executionLogFile -Append | Write-Output
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Something went wrong. Inside catch block of '$script'." | Write-Output
         $isCustomError = $true
         $_ | Write-Warning
     }
