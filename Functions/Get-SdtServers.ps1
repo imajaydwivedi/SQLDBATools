@@ -5,8 +5,9 @@
     )
 
     "Getting list from [$SdtInventoryInstance].[$SdtInventoryDatabase].[dbo].[$($SdtInventoryTable -replace 'dbo.','')].." | Write-Verbose
-    $Global:SdtServers += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+    $Global:SdtInventoryTableData += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
                             -Query "select * from $SdtInventoryTable where is_active = 1 and monitoring_enabled = 1;"
-    $Global:SdtServersList += $Global:SdtServers | Select-Object -ExpandProperty server;
-    $Global:SdtServersFriendlyName += $Global:SdtServers | Select-Object -ExpandProperty friendly_name;
+    $Global:SdtServerList += $Global:SdtInventoryTableData | Select-Object -ExpandProperty server -Unique ;
+    $Global:SdtFriendlyNameList += $Global:SdtInventoryTableData | Select-Object -ExpandProperty friendly_name -Unique ;
+    $Global:SdtSqlInstanceList += $Global:SdtInventoryTableData | Select-Object -ExpandProperty sql_instance -Unique ;
 }

@@ -108,11 +108,11 @@ try
     "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","ComputerName not provided." | Tee-Object $executionLogFile -Append | Write-Output
     if([String]::IsNullOrEmpty($ComputerName)) {
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Fetch list of servers from Inventory.." | Tee-Object $executionLogFile -Append | Write-Output
-        if($SdtServersList.Count -eq 0) {
+        if($SdtInventoryTableData.Count -eq 0) {
             Get-SdtServers -Verbose
         }
         $ComputerName = @()
-        $ComputerName += $SdtServersList;
+        $ComputerName += $SdtServerList;
     }
 
     #1/0;
@@ -136,7 +136,7 @@ catch {
 
     if( $lastRunStatus -ge $FailureNotifyThreshold )
     {
-        $subject = "[$($Script.Replace('.ps1',''))] - Failed"
+        $subject = "$($Script.Replace('.ps1','')) - Failed"
         $footer = "<p>Alert Created @ $(Get-Date -format 'yyyy-MMM-dd HH.mm.ss')</p>"
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' with alert key '$subject'.." | Tee-Object $executionLogFile -Append | Write-Output
         Raise-SdtAlert @verboseDebugPreferences -To $EmailTo -Subject $subject -BodyAsHtml -Attachments "$executionLogFile" -Priority High -DelayMinutes $DelayMinutes `
@@ -144,9 +144,11 @@ catch {
 $SdtCssStyle
 <h2><span class=blue>$($Script.Replace('.ps1',''))</span> failed for <span class=red>$lastRunStatus</span> times continously</h2>
 <p>Error =></p>
-<p style="color:red">
-$($errMessage.Exception.Message.Split("`n") | % {"$_<br>"})
-<br><br>-- For details analysis, kindly read log file '$executionLogFile'
+<p style="color:red"><pre>
+$($errMessage.Exception.Message)
+</pre></p>
+<p>
+<br><br>-- For details analysis, kindly read attached log file '$executionLogFile'
 </p>
 <br>$('-'*50)<br>$footer
 "@

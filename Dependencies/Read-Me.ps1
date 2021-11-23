@@ -36,13 +36,14 @@ cls
 $servers = @('SqlDr1')
 & "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
         -DelayMinutes 1 `
-        -WarningThresholdPercent 50 -CriticalThresholdPercent 85 -Verbose `
+        -WarningThresholdPercent 60 -CriticalThresholdPercent 85 -Verbose `
         -EmailTo 'ajay.dwivedi2007@gmail.com' -ComputerName $servers `
         -Debug
 
 cls
-$servers = @('SqlProd1','SqlDr1','SqlProd2','SqlDr2','SqlProd3','SqlDr3')
-Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 50 -CriticalThresholdPercent 85 -DelayMinutes 1 -Verbose -Debug
+Get-SdtServers -Verbose
+$servers = @('SqlDr1','SqlProd1')
+Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 60 -CriticalThresholdPercent 85 -DelayMinutes 1 -Verbose -Debug
 
 # CmdExec Step Type with below format of Script Call. Try both of these methods in command prompt first
 powershell.exe -executionpolicy bypass -Noninteractive C:\Program` Files\WindowsPowerShell\Modules\SQLDBATools\0.0.8\Wrapper\Wrapper-SdtDiskSpace.ps1 -WarningThresholdPercent 30 -CriticalThresholdPercent 50 -DelayMinutes 2
@@ -77,10 +78,10 @@ from dbo.sdt_alert_rules ar
 go
 
 /*
-insert dbo.sdt_alert_rules (alert_key, server_friendly_name, server_owner, severity, alert_receiver, alert_receiver_name, reference_request)
-select 'Alert-SdtDiskSpace','SqlProd1',NULL,NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
+insert dbo.sdt_alert_rules (alert_key, server_friendly_name, severity, alert_receiver, alert_receiver_name, reference_request)
+select 'Alert-SdtDiskSpace','SqlProd1',NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
 union all
-select 'Alert-SdtDiskSpace','SqlDr1',NULL,NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
+select 'Alert-SdtDiskSpace','SqlDr1',NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
 */
 
 /*

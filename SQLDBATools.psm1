@@ -174,13 +174,14 @@ elseif ($isEnvFileLoaded)
     }
 }
 
+<#
 # Check for SqlServer PS Module
 $M_SqlServer = Get-Module -Name SqlServer -ListAvailable -Verbose:$false;
 if([String]::IsNullOrEmpty($M_SqlServer)) {
     Write-Output 'SqlServer powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
     Write-Output "`tInstall-Module -Name SqlServer -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
 }
-
+#>
 
 $M_PoshRSJob = Get-Module -Name PoshRSJob -ListAvailable -Verbose:$false;
 if([String]::IsNullOrEmpty($M_PoshRSJob)) {
