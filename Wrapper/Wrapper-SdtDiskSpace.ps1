@@ -122,6 +122,12 @@ try
                 | Tee-Object $executionLogFile -Append
 
     "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","End of try block of $script.." | Tee-Object $executionLogFile -Append | Write-Output
+    $subject = "$($Script.Replace('.ps1',''))"
+    $footer = "<p>Alert Created @ $(Get-Date -format 'yyyy-MMM-dd HH.mm.ss')</p>"
+    $content = '<p style="color:blue">Alert has cleared. No action pending</p>'
+    $body = "$SdtCssStyle $content $footer" | Out-String
+    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","$Script executed successfully. Calling 'Raise-SdtAlert' to clear active alert (if any).." | Write-Output
+    Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority 'Normal' -Severity Error -BodyAsHtml -ClearAlert -DelayMinutes $DelayMinutes
     0 | Out-File $statusLogFile
 }
 catch {
@@ -136,10 +142,11 @@ catch {
 
     if( $lastRunStatus -ge $FailureNotifyThreshold )
     {
-        $subject = "$($Script.Replace('.ps1','')) - Failed"
+        #$subject = "$($Script.Replace('.ps1','')) - Failed"
+        $subject = "$($Script.Replace('.ps1',''))"
         $footer = "<p>Alert Created @ $(Get-Date -format 'yyyy-MMM-dd HH.mm.ss')</p>"
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' with alert key '$subject'.." | Tee-Object $executionLogFile -Append | Write-Output
-        Raise-SdtAlert @verboseDebugPreferences -To $EmailTo -Subject $subject -BodyAsHtml -Attachments "$executionLogFile" -Priority High -DelayMinutes $DelayMinutes `
+        Raise-SdtAlert @verboseDebugPreferences -To $EmailTo -Subject $subject -BodyAsHtml -Attachments "$executionLogFile" -Severity Error -Priority High -DelayMinutes $DelayMinutes `
                 -Body @"
 $SdtCssStyle
 <h2><span class=blue>$($Script.Replace('.ps1',''))</span> failed for <span class=red>$lastRunStatus</span> times continously</h2>

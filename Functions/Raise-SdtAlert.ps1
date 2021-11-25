@@ -8,7 +8,7 @@
         [string]$Body,
         [Parameter(Mandatory=$false)]
         [string[]]$ServersAffected = @(),
-        [Parameter(Mandatory=$false)][ValidateSet('Critical', 'High', 'Medium', 'Low')]
+        [Parameter(Mandatory=$false)][ValidateSet('Critical', 'High', 'Medium', 'Low', 'Error')]
         $Severity = 'High',
         [Parameter(Mandatory=$false)]
         [string[]]$To = @($SdtDBAGroupMailId),
@@ -32,7 +32,7 @@
     $dtmm = $startTime.ToString('yyyy-MM-dd HH.mm.ss')
     $script = $MyInvocation.MyCommand.Name
     if([String]::IsNullOrEmpty($Script)) {
-        $Script = 'Alert-SdtDiskSpace'
+        $Script = 'Raise-SdtAlert'
     }
 
     $isCustomError = $false
@@ -42,6 +42,12 @@
         $alert = $true
         if ($ClearAlert) {
             $alert = $false
+        }
+
+        $isErrorAlert = $false
+        if($Severity -eq 'Error') {
+            $Severity = 'High'
+            $isErrorAlert = $true
         }
 
         $alertTime = Get-Date
@@ -67,16 +73,19 @@
         Write-Verbose "Get current alert details from Inventory for AlertKey"
         $currentAlert = @()
         $currentAlert += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
-                    -Query "select * from $SdtAlertTable a with (nolock) where alert_key = '$Subject' and state in ('active','suppressed')";
+                    -Query "select * from $SdtAlertTable a with (nolock) where alert_key = '$Subject' and state in ('active','suppressed') and severity = '$Severity' and email_to = '$($To -join ';')'";
 
         #1/0;
+
+        $currentAlert | Select id, alert_key, email_to, state, severity, last_occurred_date_utc, last_notified_date_utc | ft -autosize | Write-Verbose
+
         # if alert is not active and history is found, then clear history
         Write-Verbose "Evaluate => (`$ClearAlert -and `$currentAlert.Count -gt 0)"
         if($ClearAlert -and $currentAlert.Count -gt 0)
         {
             Write-Verbose "Alert is inactive, but history is found."
             Write-Verbose "Clearing mail notification.."
-            Send-MailMessage @mailParams -Subject "[CLEARED] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Priority $Priority
+            Send-MailMessage @mailParams -Subject "[CLEARED] - [Id#$($currentAlert.id)] - [$(if($isErrorAlert){'ERROR'}else{$Severity})] - $Subject" -Body $Body -Priority $Priority
         
             Write-Verbose "Marking cleared in alert table.."
             $alertUpdateSql = @"
@@ -85,6 +94,7 @@
     set [state] = 'Cleared', last_occurred_date_utc = '$($newOccurredDateUTC.ToString('yyyy-MM-dd HH:mm:ss.fff'))'
     from $SdtAlertTable a --with (nolock) 
     where alert_key = '$Subject' and state in ('active','suppressed')
+        and severity = '$Severity' and email_to = '$($To -join ';')'
 "@
             Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException
         }
@@ -99,7 +109,7 @@
             $alertUpdateSql = @"
     set nocount on;
     insert $SdtAlertTable (alert_key, email_to, severity, servers_affected)
-    select '$Subject', '$($To -join ',')', '$Severity', $( if($ServersAffected.Count -gt 0){"'"+($ServersAffected -join '; ')+"'"}else{'null'} );
+    select '$Subject', '$($To -join ';')', '$Severity', $( if($ServersAffected.Count -gt 0){"'"+($ServersAffected -join '; ')+"'"}else{'null'} );
 
     select SCOPE_IDENTITY() as id;
 "@
@@ -108,10 +118,10 @@
 
             Write-Verbose "Sending mail notification.."
             if([String]::IsNullOrEmpty($Attachments)) {
-                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - $Subject" -Body $Body -Priority $Priority
+                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - [$(if($isErrorAlert){'ERROR'}else{$Severity})] - $Subject" -Body $Body -Priority $Priority
             }
             else {
-                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - $Subject" -Body $Body -Attachments $Attachments
+                Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$generatedAlertId] - [$(if($isErrorAlert){'ERROR'}else{$Severity})] - $Subject" -Body $Body -Attachments $Attachments
             }
         }
 
@@ -148,6 +158,7 @@
         $(if($alert){",last_notified_date_utc = '$($newNotifiedDateUTC.ToString('yyyy-MM-dd HH:mm:ss.fff'))', notification_counts += 1"})
     from $SdtAlertTable a with (nolock) 
     where alert_key = '$Subject' and state in ('active','suppressed')
+        and severity = '$Severity' and email_to = '$($To -join ';')'
 "@
             Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $alertUpdateSql -EnableException
 
@@ -155,10 +166,10 @@
             {
                 Write-Verbose "Sending mail notification.."
                 if([String]::IsNullOrEmpty($Attachments)) {
-                    Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Priority $Priority 
+                    Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - [$(if($isErrorAlert){'ERROR'}else{$Severity})] - $Subject" -Body $Body -Priority $Priority 
                 }
                 else {
-                    Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - $Subject" -Body $Body -Attachments $Attachments -Priority $Priority
+                    Send-MailMessage @mailParams -Subject "[ACTIVE] - [Id#$($currentAlert.id)] - [$(if($isErrorAlert){'ERROR'}else{$Severity})] - $Subject" -Body $Body -Attachments $Attachments -Priority $Priority
                 }
             }
         }

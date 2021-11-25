@@ -100,9 +100,8 @@
         }
         $jobs | Remove-RSJob -Verbose:$false
 
-        #$subject = "Alert-SdtDiskSpace - $(Get-Date -format 'yyyy-MMM-dd')"
         $subject = "Alert-SdtDiskSpace"
-        $footer = "<p>Report Generated @ $(Get-Date -format 'yyyy-MM-dd HH.mm.ss')</p>"
+        $footer = "<br><p>Report Generated @ $(Get-Date -format 'yyyy-MM-dd HH.mm.ss')</p>"
 
         
         # Get alert rules for the alert key
@@ -148,25 +147,32 @@
         
         $jobsResultFiltered = @()
         $jobsResultFiltered += $jobsResultExtended | Where-Object {$_.PercentUsed -ge $_.WarningThreshold}
+        if($jobsResultFiltered.Count -gt 0) {
+            $jobsResultFiltered | Add-Member -MemberType ScriptProperty -Name "Severity" -Value { if($this.PercentUsed -ge $this.CriticalThreshold) {'CRITICAL'} else {'WARNING'} }
+        }
 
         Write-Debug "Inside $Script"
-        if($jobsResultFiltered.Count -gt 0)
+        foreach($alertGroup in $($jobsResultFiltered | Group-Object -Property ReceiverName, Severity))
         {
-            $jobsResultFiltered | Add-Member -MemberType ScriptProperty -Name "Severity" -Value { if($this.PercentUsed -ge $this.CriticalThreshold) {'CRITICAL'} else {'WARNING'} }
+            $receiverName = ($alertGroup.Name -split ',')[0].Trim()
+            $severity = ($alertGroup.Name -split ',')[1].Trim()
+            [string[]]$receiver = $alertGroup.Group | Select-Object -ExpandProperty Receiver -Unique
+            $groupAlertDelayMinutes = $alertGroup.Group | Select-Object -ExpandProperty DelayMinutes -First 1
     
             $alertResult = @()
-            $alertResult += $jobsResultFiltered | Select-Object @{l='Server';e={$_.FriendlyName}}, @{l='DiskVolume';e={$_.Name}}, Severity, `
-                                                @{l='FreePercent';e={"$($_.PercentFree) ($($_.Free)%/$($_.Capacity))"}}, `
+            $alertResult += $alertGroup.Group | Select-Object @{l='Server';e={$_.FriendlyName}}, @{l='DiskVolume';e={$_.Name}}, Severity, `
+                                                @{l='FreePercent';e={"$($_.PercentFree)% ($($_.Free)/$($_.Capacity))"}}, `
                                                 @{l='WarningPercent';e={[math]::Round($_.WarningThreshold,2)}}, @{l='CriticalPercent';e={[math]::Round($_.CriticalThreshold,2)}}, `
-                                                @{l='DashboardURL';e={"http://$SdtGrafanaBaseURL"}} 
+                                                Receiver, DelayMinutes, @{l='DashboardURL';e={"http://$SdtGrafanaBaseURL"}} 
         
-            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Below disk(s) are found with space issue - " | Write-Output
+            "`n{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Below disk(s) are found with [$severity] space issue for receiver '$receiverName'- " | Write-Output
             $alertResult | ft -AutoSize | Out-String
 
             $alertServers = @()
             $alertServers += $alertResult | Select-Object -ExpandProperty Server -Unique
             $serverCounts = $alertServers.Count
 
+            <#
             $criticalDisks = @()
             $criticalDisks += $alertResult | Where-Object {$_.Severity -eq 'CRITICAL'}
             $criticalDisksCount = $criticalDisks.Count
@@ -174,28 +180,30 @@
             $warningDisks = @()
             $warningDisks += $alertResult | Where-Object {$_.Severity -eq 'WARNING'}        
             $warningDisksCount = $warningDisks.Count
+            #>
 
-            $title = "<h2>Alert-SdtDiskSpace - $(if($serverCounts -gt 1){"$serverCounts Servers"}else{"[$alertServers]"}) $(if($criticalDisksCount -gt 0){"- $criticalDisksCount CRITICAL"}) $(if($warningDisksCount -gt 0){"- $warningDisksCount WARNING"})</h2>"
+            $title = "<h2>Alert-SdtDiskSpace - $(if($serverCounts -gt 1){"$serverCounts Servers"}else{"[$alertServers]"}) - $($alertGroup.Count) $severity</h2>"
             #$content = $alertResult | Sort-Object -Property Severity, Server |  ConvertTo-Html -Fragment
             $params = @{
                         'As'='Table';
-                        'PreContent'= '<h3 class="blue">Disk Space Utilization</h3>';
+                        'PreContent'= "<p>Hi $receiverName,<br><br>Kindly take corrective action.</p><br><h3 class=`"blue`">Disk Space Utilization</h3>";
                         'EvenRowCssClass' = 'even';
                         'OddRowCssClass' = 'odd';
                         'MakeTableDynamic' = $true;
                         'TableCssClass' = 'grid';
                         'Properties' = 'Server', 'DiskVolume', @{n='Severity';e={$_.Severity};css={if ($_.Severity -eq 'CRITICAL') { 'red' }}},
                                         @{n='Warning %';e={$($_.WarningPercent).ToString("#.00")}}, @{n='Critical %';e={$($_.CriticalPercent).ToString("#.00")}},
-                                        'FreePercent', 'DashboardURL'
+                                        @{n='Free Space %';e={$_.FreePercent}}, 'DashboardURL'
                     }
             $content = $alertResult | Sort-Object -Property Severity, Server | ConvertTo-EnhancedHTMLFragment @params
             $body = "<html><head>$SdtCssStyle</head><body> $title $content $footer </body></html>" | Out-String
 
-            if($criticalDisksCount -gt 0) { $priority = 'High' } else { $priority = 'Normal' }
-            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' with alert key '$subject'.." | Write-Output
-            Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -ServersAffected $alertServers -Priority $priority -Severity High -BodyAsHtml -DelayMinutes $DelayMinutes
+            if($severity -eq 'CRITICAL') { $priority = 'High' } else { $priority = 'Normal'; $severity = 'HIGH' }
+            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' with alert key '$subject' for receiver '$receiverName'.." | Write-Output
+            Raise-SdtAlert -To $receiver -Subject $subject -Body $body -ServersAffected $alertServers -Priority $priority -Severity $severity -BodyAsHtml -DelayMinutes $groupAlertDelayMinutes
         }
-        else {
+
+        if($jobsResultFiltered.Count -eq 0) {
             $content = '<p style="color:blue">Alert has cleared. No action pending</p>'
             $body = "$SdtCssStyle $content $footer" | Out-String
             "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","No space issue found. Calling 'Raise-SdtAlert' to clear active alert (if any).." | Write-Output

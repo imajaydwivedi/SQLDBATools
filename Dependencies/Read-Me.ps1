@@ -2,6 +2,13 @@
 Get-Variable Sdt* | Remove-Variable
 Remove-Module SQLDBATools
 
+cls
+Get-SdtServers -Verbose
+#$servers = @('SqlDr1','SqlProd1')
+$servers = $SdtFriendlyNameList
+Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 60 -CriticalThresholdPercent 85 -DelayMinutes 1 -Verbose -Debug
+
+
 # Copy files from b/w directories. Ensure not to add '\' at end of path
 cls
 $srcPath = "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools"
@@ -33,11 +40,11 @@ cls
         -Verbose -Debug
 
 cls
-$servers = @('SqlDr1')
+$servers = @('SqlProd1')
+#$servers = $SdtFriendlyNameList
 & "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
-        -DelayMinutes 1 `
-        -WarningThresholdPercent 60 -CriticalThresholdPercent 85 -Verbose `
-        -EmailTo 'ajay.dwivedi2007@gmail.com' -ComputerName $servers `
+        -DelayMinutes 1 -WarningThresholdPercent 60 -CriticalThresholdPercent 85 `
+        -ComputerName $servers -Verbose `
         -Debug
 
 cls
