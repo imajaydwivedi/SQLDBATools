@@ -10,7 +10,7 @@ RootModule = 'SQLDBATools.psm1'
 
 # Version number of this module.
     # https://jeffbrown.tech/how-to-publish-your-first-powershell-gallery-package/
-ModuleVersion = '0.0.9'
+ModuleVersion = '0.0.10'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -137,7 +137,7 @@ PrivateData = @{
         # RequireLicenseAcceptance = $false
 
         # External dependent modules of this module
-        ExternalModuleDependencies = @('dbatools','ImportExcel','PoshRSJob','SqlServer','EnhancedHTML2')
+        ExternalModuleDependencies = @('dbatools','ImportExcel','PoshRSJob','EnhancedHTML2')
 
     } # End of PSData hashtable
 

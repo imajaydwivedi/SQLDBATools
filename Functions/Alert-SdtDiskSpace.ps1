@@ -12,158 +12,214 @@
         [Parameter(Mandatory=$false)]
         [decimal]$CriticalThresholdPercent = 90.0,
         [Parameter(Mandatory=$false)]
-        [string]$ThresholdTable = 'dbo.sdt_disk_space_threshold',
-        [Parameter(Mandatory=$false)]
         [string[]]$EmailTo = @($SdtDBAMailId),
         [Parameter(Mandatory=$false)]
         [int]$DelayMinutes = 60
     )
 
-    $isCustomError = $false
-    <#
-    #$errMessage = @()
+    # Set Initial Variables
+    $startTime = Get-Date
+    $dtmm = $startTime.ToString('yyyy-MM-dd HH.mm.ss')
+    $script = $MyInvocation.MyCommand.Name
+    if([String]::IsNullOrEmpty($Script)) {
+        $Script = 'Alert-SdtDiskSpace'
+    }
 
-    # Check for server connectivity
-    $servers = @()
-    $servers = $ComputerName
-    $ComputerName = @()
-    foreach($srv in $servers) {
-        if(Test-Connection $srv -Count 2) {
+    Try 
+    {
+        $isCustomError = $false
+
+        #1/0;
+
+        # Start Actual Work
+        $blockDbaDiskSpace = {
+            $ComputerName = $_
+            $FriendlyName = $ComputerName.Split('.')[0]
+            $r = Get-DbaDiskSpace -ComputerName $ComputerName -EnableException
+            $r | Add-Member -NotePropertyName FriendlyName -NotePropertyValue $FriendlyName
+            $r | Add-Member -MemberType ScriptProperty -Name "PercentUsed" -Value {[math]::Round((100.00 - $this.PercentFree), 2)}
+            $r
         }
-    }
-    if(-not (Test-Connection $ComputerName -Count 2)) {
-        Write-Verbose "Servers are connecting"
-    }
-    #>
 
-    # Start Actual Work
-    $blockDbaDiskSpace = {
-        $ComputerName = $_
-        $FriendlyName = $ComputerName.Split('.')[0]
-        $r = Get-DbaDiskSpace -ComputerName $ComputerName -EnableException
-        $r | Add-Member -NotePropertyName FriendlyName -NotePropertyValue $FriendlyName
-        $r | Add-Member -MemberType ScriptProperty -Name "PercentUsed" -Value {[math]::Round((100.00 - $this.PercentFree), 2)}
-        $r
-    }
+        $jobs = @()
+        $jobs += $ComputerName | Start-RSJob -Name {$_} -ScriptBlock $blockDbaDiskSpace -Throttle $SdtDOP
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Waiting for RSJobs to complete.." | Write-Verbose
+        $jobs | Wait-RSJob -ShowProgress -Timeout 1200 -Verbose:$false | Out-Null
 
-    $jobs = @()
-    $jobs += $ComputerName | Start-RSJob -Name {$_} -ScriptBlock $blockDbaDiskSpace -Throttle $SdtDOP
-    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Waiting for RSJobs to complete.." | Write-Verbose
-    $jobs | Wait-RSJob -ShowProgress -Timeout 1200 -Verbose:$false | Out-Null
+        $jobs_timedout = @()
+        $jobs_timedout += $jobs | Where-Object {$_.State -in ('NotStarted','Running','Stopping')}
+        $jobs_success = @()
+        $jobs_success += $jobs | Where-Object {$_.State -eq 'Completed' -and $_.HasErrors -eq $false}
+        $jobs_fail = @()
+        $jobs_fail += $jobs | Where-Object {$_.HasErrors -or $_.State -in @('Disconnected')}
 
-    $jobs_timedout = @()
-    $jobs_timedout += $jobs | Where-Object {$_.State -in ('NotStarted','Running','Stopping')}
-    $jobs_success = @()
-    $jobs_success += $jobs | Where-Object {$_.State -eq 'Completed' -and $_.HasErrors -eq $false}
-    $jobs_fail = @()
-    $jobs_fail += $jobs | Where-Object {$_.HasErrors -or $_.State -in @('Disconnected')}
-
-    $jobsResult = @()
-    $jobsResult += $jobs_success | Receive-RSJob -Verbose:$false
+        $jobsResult = @()
+        $jobsResult += $jobs_success | Receive-RSJob -Verbose:$false
     
-    if($jobs_success.Count -gt 0) {
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Below jobs finished without error.." | Write-Output
-        $jobs_success | Select-Object Name, State, HasErrors | Format-Table -AutoSize | Out-String | Write-Output
-    }
-
-    if($jobs_timedout.Count -gt 0)
-    {
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Some jobs timed out. Could not completed in 20 minutes." | Write-Output
-        $jobs_timedout | Format-Table -AutoSize | Out-String | Write-Output
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Stop timedout jobs.." | Write-Output
-        $jobs_timedout | Stop-RSJob
-    }
-
-    if($jobs_fail.Count -gt 0)
-    {
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Some jobs failed." | Write-Output
-        $jobs_fail | Format-Table -AutoSize | Out-String | Write-Output
-        "--"*20 | Write-Output
-    }
-
-    $jobs_exception = @()
-    $jobs_exception += $jobs_timedout + $jobs_fail
-    [System.Collections.ArrayList]$jobErrMessages = @()
-    if($jobs_exception.Count -gt 0 ) {   
-        $alertHost = $jobs_exception | Select-Object -ExpandProperty Name -First 1
-        $isCustomError = $true
-        $errMessage = "`nBelow jobs either timed or failed-`n$($jobs_exception | Select-Object Name, State, HasErrors | Out-String)"
-        $failCount = $jobs_fail.Count
-        $failCounter = 0
-        foreach($job in $jobs_fail) {
-            $failCounter += 1
-            $jobErrMessage = ''
-            if($failCounter -eq 1) {
-                $jobErrMessage = "`n$("_"*20)`n" | Write-Output
-            }
-            $jobErrMessage += "`nError Message for server [$($job.Name)] => `n`n$($job.Error | Out-String)"
-            $jobErrMessage += "$("_"*20)`n`n" | Write-Output
-            $jobErrMessages.Add($jobErrMessage) | Out-Null;
+        if($jobs_success.Count -gt 0) {
+            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Below jobs finished without error.." | Write-Output
+            $jobs_success | Select-Object Name, State, HasErrors | Format-Table -AutoSize | Out-String | Write-Output
         }
-        $errMessage += ($jobErrMessages -join '')
-        #throw $errMessage
-    }
-    $jobs | Remove-RSJob -Verbose:$false
 
-    $jobsResultFiltered = @()
-    $jobsResultFiltered += $jobsResult | Where-Object {$_.PercentUsed -ge $WarningThresholdPercent}
+        if($jobs_timedout.Count -gt 0)
+        {
+            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Some jobs timed out. Could not completed in 20 minutes." | Write-Output
+            $jobs_timedout | Format-Table -AutoSize | Out-String | Write-Output
+            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Stop timedout jobs.." | Write-Output
+            $jobs_timedout | Stop-RSJob
+        }
 
-    #$subject = "Alert-SdtDiskSpace - $(Get-Date -format 'yyyy-MMM-dd')"
-    $subject = "Alert-SdtDiskSpace"
-    $footer = "<p>Report Generated @ $(Get-Date -format 'yyyy-MM-dd HH.mm.ss')</p>"
+        if($jobs_fail.Count -gt 0)
+        {
+            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Some jobs failed." | Write-Output
+            $jobs_fail | Format-Table -AutoSize | Out-String | Write-Output
+            "--"*20 | Write-Output
+        }
 
-    if($jobsResultFiltered.Count -gt 0)
-    {
-        $jobsResultFiltered | Add-Member -MemberType ScriptProperty -Name "Severity" -Value { if($this.PercentUsed -ge $CriticalThresholdPercent) {'CRITICAL'} else {'WARNING'} }
-    
-        $alertResult = @()
-        $alertResult += $jobsResultFiltered | Select-Object @{l='Server';e={$_.FriendlyName}}, @{l='DiskVolume';e={$_.Name}}, Severity, `
-                                            @{l='FreePercent';e={"$($_.PercentFree) ($($_.Free)/$($_.Capacity))"}}, `
-                                            @{l='DashboardURL';e={"$SdtGrafanaBaseURL"}} 
-        
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Below disk(s) are found with space issue - " | Write-Output
-        $alertResult | ft -AutoSize | Out-String
-
-        $alertServers = @()
-        $alertServers += $alertResult | Select-Object -ExpandProperty Server -Unique
-        $serverCounts = $alertServers.Count
-
-        $criticalDisks = @()
-        $criticalDisks += $alertResult | Where-Object {$_.Severity -eq 'CRITICAL'}
-        $criticalDisksCount = $criticalDisks.Count
-
-        $warningDisks = @()
-        $warningDisks += $alertResult | Where-Object {$_.Severity -eq 'WARNING'}        
-        $warningDisksCount = $warningDisks.Count
-
-        $title = "<h2>Alert-SdtDiskSpace - $(if($serverCounts -gt 1){"$serverCounts Servers"}else{"[$alertServers]"}) $(if($criticalDisksCount -gt 0){"- $criticalDisksCount CRITICAL"}) $(if($warningDisksCount -gt 0){"- $warningDisksCount WARNING"})</h2>"
-        #$content = $alertResult | Sort-Object -Property Severity, Server |  ConvertTo-Html -Fragment
-        $params = @{
-                    'As'='Table';
-                    'PreContent'= '<h3 class="blue">Disk Space Utilization</h3>';
-                    'EvenRowCssClass' = 'even';
-                    'OddRowCssClass' = 'odd';
-                    'MakeTableDynamic' = $true;
-                    'TableCssClass' = 'grid';
-                    'Properties' = 'Server', 'DiskVolume', @{n='Severity';e={$_.Severity};css={if ($_.Severity -eq 'CRITICAL') { 'red' }}},
-                                    'FreePercent', 'DashboardURL'
+        $jobs_exception = @()
+        $jobs_exception += $jobs_timedout + $jobs_fail
+        [System.Collections.ArrayList]$jobErrMessages = @()
+        if($jobs_exception.Count -gt 0 ) {   
+            $alertHost = $jobs_exception | Select-Object -ExpandProperty Name -First 1
+            $isCustomError = $true
+            $errMessage = "`nBelow jobs either timed or failed-`n$($jobs_exception | Select-Object Name, State, HasErrors | Format-Table -AutoSize | Out-String -Width 700)"
+            $failCount = $jobs_fail.Count
+            $failCounter = 0
+            foreach($job in $jobs_fail) {
+                $failCounter += 1
+                $jobErrMessage = ''
+                if($failCounter -eq 1) {
+                    $jobErrMessage = "`n$("_"*20)`n" | Write-Output
                 }
-        $content = $alertResult | Sort-Object -Property Severity, Server | ConvertTo-EnhancedHTMLFragment @params
-        $body = "$SdtCssStyle $title $content $footer" | Out-String
+                $jobErrMessage += "`nError Message for server [$($job.Name)] => `n`n$($job.Error | Out-String)"
+                $jobErrMessage += "$("_"*20)`n`n" | Write-Output
+                $jobErrMessages.Add($jobErrMessage) | Out-Null;
+            }
+            $errMessage += ($jobErrMessages -join '')
+            #throw $errMessage
+        }
+        $jobs | Remove-RSJob -Verbose:$false
 
-        if($criticalDisksCount -gt 0) { $priority = 'High' } else { $priority = 'Normal' }
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' to generate alert notification.." | Write-Output
-        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority $priority -Severity High -BodyAsHtml -DelayMinutes $DelayMinutes
-    }
-    else {
-        $content = '<p style="color:blue">Alert has cleared. No action pending</p>'
-        $body = "$SdtCssStyle $content $footer" | Out-String
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","No space issue found. Calling 'Raise-SdtAlert' to clear active alert (if any).." | Write-Output
-        Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority 'Normal' -Severity High -BodyAsHtml -ClearAlert -DelayMinutes $DelayMinutes
-    }
+        $subject = "Alert-SdtDiskSpace"
+        $footer = "<br><p>Report Generated @ $(Get-Date -format 'yyyy-MM-dd HH.mm.ss')</p>"
 
-    if($isCustomError) {
-        throw $errMessage
+        
+        # Get alert rules for the alert key
+        Write-Verbose "Get rules for Alert Key '$Subject'"
+        $currentAlertRules = @()
+        $currentAlertRules += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+                    -Query "select * from $SdtAlertRulesTable ar with (nolock) where alert_key = '$Subject' and is_active = 1";
+
+        # Add Warning & Critical threshold inline with Details
+        $jobsResultExtended = @()
+        foreach($srvGroup in $($jobsResult | Group-Object ComputerName)) {
+            [decimal]$alertWarningThreshold = $WarningThresholdPercent
+            [decimal]$alertCriticalThreshold = $CriticalThresholdPercent
+            [System.Array]$alertReceiver = $EmailTo
+            $alertReceiverName = 'DBA'
+            $alertDelayMinutes = $DelayMinutes
+
+            $alertServerName = $srvGroup.Name
+            $alertDiskDetails = $srvGroup.Group
+
+            $srvRule = @()
+            $srvRule += $currentAlertRules | Where-Object {$_.server_friendly_name -eq $alertServerName}
+            if($srvRule.Count -eq 1) {
+                [system.Array]$alertReceiverRules = if(-not [String]::IsNullOrEmpty($srvRule.alert_receiver)){((($srvRule.alert_receiver) -split ';') -split ',')}
+
+                [decimal]$alertWarningThreshold = if([String]::IsNullOrEmpty($srvRule.severity_high_threshold)){$alertWarningThreshold}else{$srvRule.severity_high_threshold}
+                [decimal]$alertCriticalThreshold = if([String]::IsNullOrEmpty($srvRule.severity_critical_threshold)){$alertCriticalThreshold}else{$srvRule.severity_critical_threshold}
+                $alertReceiver += $alertReceiverRules
+                $alertReceiverName = if([String]::IsNullOrEmpty($srvRule.alert_receiver_name)){$alertReceiverName}else{$srvRule.alert_receiver_name}
+                $alertDelayMinutes = if([String]::IsNullOrEmpty($srvRule.delay_minutes)){$alertDelayMinutes}else{$srvRule.delay_minutes}
+            }
+
+            $srvDiskDetails = @()
+            $srvDiskDetails += $($srvGroup.Group)
+            $srvDiskDetails | Add-Member -NotePropertyName WarningThreshold -NotePropertyValue $alertWarningThreshold -Force
+            $srvDiskDetails | Add-Member -NotePropertyName CriticalThreshold -NotePropertyValue $alertCriticalThreshold -Force
+            $srvDiskDetails | Add-Member -NotePropertyName Receiver -NotePropertyValue $alertReceiver -Force
+            $srvDiskDetails | Add-Member -NotePropertyName ReceiverName -NotePropertyValue $alertReceiverName -Force
+            $srvDiskDetails | Add-Member -NotePropertyName DelayMinutes -NotePropertyValue $alertDelayMinutes -Force
+
+            $jobsResultExtended += $srvDiskDetails
+        }
+        
+        $jobsResultFiltered = @()
+        $jobsResultFiltered += $jobsResultExtended | Where-Object {$_.PercentUsed -ge $_.WarningThreshold}
+        if($jobsResultFiltered.Count -gt 0) {
+            $jobsResultFiltered | Add-Member -MemberType ScriptProperty -Name "Severity" -Value { if($this.PercentUsed -ge $this.CriticalThreshold) {'CRITICAL'} else {'WARNING'} }
+        }
+
+        Write-Debug "Inside $Script"
+        foreach($alertGroup in $($jobsResultFiltered | Group-Object -Property ReceiverName, Severity))
+        {
+            $receiverName = ($alertGroup.Name -split ',')[0].Trim()
+            $severity = ($alertGroup.Name -split ',')[1].Trim()
+            [string[]]$receiver = $alertGroup.Group | Select-Object -ExpandProperty Receiver -Unique
+            $groupAlertDelayMinutes = $alertGroup.Group | Select-Object -ExpandProperty DelayMinutes -First 1
+    
+            $alertResult = @()
+            $alertResult += $alertGroup.Group | Select-Object @{l='Server';e={$_.FriendlyName}}, @{l='DiskVolume';e={$_.Name}}, Severity, `
+                                                @{l='FreePercent';e={"$($_.PercentFree)% ($($_.Free)/$($_.Capacity))"}}, `
+                                                @{l='WarningPercent';e={[math]::Round($_.WarningThreshold,2)}}, @{l='CriticalPercent';e={[math]::Round($_.CriticalThreshold,2)}}, `
+                                                Receiver, DelayMinutes, @{l='DashboardURL';e={"http://$SdtGrafanaBaseURL"}} 
+        
+            "`n{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Below disk(s) are found with [$severity] space issue for receiver '$receiverName'- " | Write-Output
+            $alertResult | ft -AutoSize | Out-String
+
+            $alertServers = @()
+            $alertServers += $alertResult | Select-Object -ExpandProperty Server -Unique
+            $serverCounts = $alertServers.Count
+
+            <#
+            $criticalDisks = @()
+            $criticalDisks += $alertResult | Where-Object {$_.Severity -eq 'CRITICAL'}
+            $criticalDisksCount = $criticalDisks.Count
+
+            $warningDisks = @()
+            $warningDisks += $alertResult | Where-Object {$_.Severity -eq 'WARNING'}        
+            $warningDisksCount = $warningDisks.Count
+            #>
+
+            $title = "<h2>Alert-SdtDiskSpace - $(if($serverCounts -gt 1){"$serverCounts Servers"}else{"[$alertServers]"}) - $($alertGroup.Count) $severity</h2>"
+            #$content = $alertResult | Sort-Object -Property Severity, Server |  ConvertTo-Html -Fragment
+            $params = @{
+                        'As'='Table';
+                        'PreContent'= "<p>Hi $receiverName,<br><br>Kindly take corrective action.</p><br><h3 class=`"blue`">Disk Space Utilization</h3>";
+                        'EvenRowCssClass' = 'even';
+                        'OddRowCssClass' = 'odd';
+                        'MakeTableDynamic' = $true;
+                        'TableCssClass' = 'grid';
+                        'Properties' = 'Server', 'DiskVolume', @{n='Severity';e={$_.Severity};css={if ($_.Severity -eq 'CRITICAL') { 'red' }}},
+                                        @{n='Warning %';e={$($_.WarningPercent).ToString("#.00")}}, @{n='Critical %';e={$($_.CriticalPercent).ToString("#.00")}},
+                                        @{n='Free Space %';e={$_.FreePercent}}, 'DashboardURL'
+                    }
+            $content = $alertResult | Sort-Object -Property Severity, Server | ConvertTo-EnhancedHTMLFragment @params
+            $body = "<html><head>$SdtCssStyle</head><body> $title $content $footer </body></html>" | Out-String
+
+            if($severity -eq 'CRITICAL') { $priority = 'High' } else { $priority = 'Normal'; $severity = 'HIGH' }
+            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' with alert key '$subject' for receiver '$receiverName'.." | Write-Output
+            Raise-SdtAlert -To $receiver -Subject $subject -Body $body -ServersAffected $alertServers -Priority $priority -Severity $severity -BodyAsHtml -DelayMinutes $groupAlertDelayMinutes
+        }
+
+        if($jobsResultFiltered.Count -eq 0) {
+            $content = '<p style="color:blue">Alert has cleared. No action pending</p>'
+            $body = "$SdtCssStyle $content $footer" | Out-String
+            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","No space issue found. Calling 'Raise-SdtAlert' to clear active alert (if any).." | Write-Output
+            Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority 'Normal' -Severity High -BodyAsHtml -ClearAlert -DelayMinutes $DelayMinutes
+        }
+    }
+    catch {
+        $errMessage = $_;
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Something went wrong. Inside catch block of '$script'." | Write-Output
+        $isCustomError = $true
+        $_ | Write-Warning
+    }
+    finally {
+        if($isCustomError) {
+            throw $errMessage
+        }
     }
 <#
 .SYNOPSIS 

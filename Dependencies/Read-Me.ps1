@@ -2,6 +2,13 @@
 Get-Variable Sdt* | Remove-Variable
 Remove-Module SQLDBATools
 
+cls
+Get-SdtServers -Verbose
+#$servers = @('SqlDr1','SqlProd1')
+$servers = $SdtFriendlyNameList
+Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 60 -CriticalThresholdPercent 85 -DelayMinutes 1 -Verbose -Debug
+
+
 # Copy files from b/w directories. Ensure not to add '\' at end of path
 cls
 $srcPath = "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools"
@@ -33,15 +40,17 @@ cls
         -Verbose -Debug
 
 cls
-$servers = @($SdtInventoryInstance,'SqlProd1')
-& 'C:\Users\Public\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1' `
-        -ComputerName $servers -DelayMinutes 2 `
-        -WarningThresholdPercent 50 -CriticalThresholdPercent 85 `
-        -Verbose -Debug
+$servers = @('SqlProd1')
+#$servers = $SdtFriendlyNameList
+& "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
+        -DelayMinutes 1 -WarningThresholdPercent 60 -CriticalThresholdPercent 85 `
+        -ComputerName $servers -Verbose `
+        -Debug
 
 cls
-$servers = @($SdtInventoryInstance)
-Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 20 -CriticalThresholdPercent 50 -DelayMinutes 5 -Verbose -Debug
+Get-SdtServers -Verbose
+$servers = @('SqlDr1','SqlProd1')
+Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 60 -CriticalThresholdPercent 85 -DelayMinutes 1 -Verbose -Debug
 
 # CmdExec Step Type with below format of Script Call. Try both of these methods in command prompt first
 powershell.exe -executionpolicy bypass -Noninteractive C:\Program` Files\WindowsPowerShell\Modules\SQLDBATools\0.0.8\Wrapper\Wrapper-SdtDiskSpace.ps1 -WarningThresholdPercent 30 -CriticalThresholdPercent 50 -DelayMinutes 2
@@ -64,9 +73,47 @@ select DATEDIFF(minute,last_notified_date_utc,GETUTCDATE()) as last_notified_min
 		*
 --update a set [state] = 'Suppressed', suppress_start_date_utc = GETUTCDATE(), suppress_end_date_utc = DATEADD(minute,20,GETUTCDATE())
 --update a set [state] = 'Suppressed', suppress_end_date_utc = DATEADD(minute,2,suppress_start_date_utc)
+--delete a
 from dbo.sdt_alert a with (nolock)
-where alert_key = 'Alert-SdtDiskSpace'
+--where alert_key = 'Alert-SdtDiskSpace'
 order by created_date_utc desc
+-- truncate table dbo.sdt_alert
 go
+
+select *
+from dbo.sdt_alert_rules ar
+go
+
+/*
+insert dbo.sdt_alert_rules (alert_key, server_friendly_name, severity, alert_receiver, alert_receiver_name, reference_request)
+select 'Alert-SdtDiskSpace','SqlProd1',NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
+union all
+select 'Alert-SdtDiskSpace','SqlDr1',NULL,'ajay.dwivedi2007@gmail.com','Ajay','Testing'
+*/
+
+/*
+if object_id('tempdb..#sdt_alert_rules_by_server') is not null
+	drop table #sdt_alert_rules_by_server;
+if object_id('tempdb..#sdt_alert_rules_by_owner') is not null
+	drop table #sdt_alert_rules_by_owner;
+
+select ar.rule_id, ar.alert_key, ar.server_friendly_name, i.server_owner, ar.alert_receiver
+into #sdt_alert_rules_by_server
+from dbo.sdt_alert_rules ar left join dbo.sdt_server_inventory i on i.friendly_name = ar.server_friendly_name
+where ar.alert_key = 'Alert-SdtDiskSpace'
+and ar.server_friendly_name in ('SqlProd1','SqlDr1','SqlProd2','Sqldr2','SqlProd3','SqlDr3')
+
+select ar.rule_id, ar.alert_key, ar.server_friendly_name, i.server_owner, ar.alert_receiver
+into #sdt_alert_rules_by_owner
+from dbo.sdt_server_inventory i left join dbo.sdt_alert_rules ar on i.server_owner = ar.server_owner
+where ar.alert_key = 'Alert-SdtDiskSpace'
+and i.friendly_name in ('SqlProd1','SqlDr1','SqlProd2','Sqldr2','SqlProd3','SqlDr3')
+
+select *
+from #sdt_alert_rules_by_server s
+
+select *
+from #sdt_alert_rules_by_owner o
+*/
 #>
 

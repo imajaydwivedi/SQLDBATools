@@ -3,7 +3,7 @@
     Created By:-    Ajay Kumar Dwivedi
     Email ID:-      ajay.dwivedi2007@gmail.com
     Modified Date:- 12-Nov-2021
-    Version:-       0.0.9
+    Version:-       0.0.10
 #>
 
 Push-Location;
@@ -174,13 +174,14 @@ elseif ($isEnvFileLoaded)
     }
 }
 
+<#
 # Check for SqlServer PS Module
 $M_SqlServer = Get-Module -Name SqlServer -ListAvailable -Verbose:$false;
 if([String]::IsNullOrEmpty($M_SqlServer)) {
     Write-Output 'SqlServer powershell module needs to be installed. Kindly execute below command in Elevated shell:-'
     Write-Output "`tInstall-Module -Name SqlServer -Scope AllUsers -Force -Confirm:`$false -Verbose:`$false'"
 }
-
+#>
 
 $M_PoshRSJob = Get-Module -Name PoshRSJob -ListAvailable -Verbose:$false;
 if([String]::IsNullOrEmpty($M_PoshRSJob)) {
