@@ -10,7 +10,7 @@ RootModule = 'SQLDBATools.psm1'
 
 # Version number of this module.
     # https://jeffbrown.tech/how-to-publish-your-first-powershell-gallery-package/
-ModuleVersion = '0.0.12'
+ModuleVersion = '0.0.13'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -128,7 +128,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Bug Fixes https://github.com/imajaydwivedi/SQLDBATools/projects/1'
+        ReleaseNotes = 'Bug Fixes https://github.com/imajaydwivedi/SQLDBATools/projects/2'
 
         # Prerelease string of this module
         # Prerelease = ''

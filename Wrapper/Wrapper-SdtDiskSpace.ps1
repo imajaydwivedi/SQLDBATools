@@ -75,7 +75,7 @@ $statusLogFile = $(Join-Path $SdtLogsPath $($Script.Replace('.ps1','__Status.txt
 $executionLogFile = $(Join-Path $SdtLogsPath $($Script.Replace('.ps1',"__Log__$($dtmm).txt")))
 
 # Set Error variables
-"`n{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(START)","Execute script '$Script'.." | Tee-Object $executionLogFile -Append | % {"`n`n`n`n`n$_"} | Write-Output
+"`n{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(START)","Execute script '$Script'.." | Tee-Object $executionLogFile | % {"`n`n`n`n`n$_"} | Write-Output
 $isCustomError = $false
 $isScriptError = $false
 [bool]$isVerbose = $false;
