@@ -6,7 +6,7 @@ cls
 Get-SdtServers -Verbose
 #$servers = @('SqlDr1','SqlProd1')
 $servers = $SdtFriendlyNameList
-Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 60 -CriticalThresholdPercent 85 -DelayMinutes 1 -Verbose -Debug
+Alert-SdtDiskSpace -ComputerName $servers -WarningThresholdPercent 65 -CriticalThresholdPercent 80 -DelayMinutes 1 -Verbose -Debug
 
 
 # Copy files from b/w directories. Ensure not to add '\' at end of path
@@ -40,10 +40,11 @@ cls
         -Verbose -Debug
 
 cls
-$servers = @('SqlProd1')
+Get-SdtServers -Verbose
+$servers = @('SqlDr1','SqlProd1')
 #$servers = $SdtFriendlyNameList
 & "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
-        -DelayMinutes 1 -WarningThresholdPercent 60 -CriticalThresholdPercent 85 `
+        -DelayMinutes 1 -WarningThresholdPercent 65 -CriticalThresholdPercent 85 `
         -ComputerName $servers -Verbose `
         -Debug
 

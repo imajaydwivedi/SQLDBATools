@@ -208,7 +208,7 @@
         $alertCombinations = @()
         foreach($alertGroup in $($jobsResultExtended | Group-Object -Property ReceiverName)) {
             $receiverName = $alertGroup.Name
-            $severity = @('Critical','Warning')
+            $severity = @('Critical','High') # Supported Severities for Alert-Key
             [string[]]$receiver = $alertGroup.Group | Select-Object -ExpandProperty Receiver -Unique
             $alertDelay = $alertGroup.Group | Select-Object -ExpandProperty DelayMinutes -First 1
 
@@ -224,20 +224,16 @@
 
         # Get alerts to clear
         $alerts2Clear = @()
-        if($alertsCreated.Count -gt 0) {
+        if($alertsCreated.Count -eq 0) {
             $alerts2Clear += $alertCombinations
         } else {
             $alerts2Clear += Join-SdtObject -Left $alertCombinations -Right $alertsCreated -LeftJoinProperty JoinKey -RightJoinProperty JoinKey `
                                     -Type AllInLeft -RightProperties IsAlerted | Where-Object {[String]::IsNullOrEmpty($_.IsAlerted)}
         }
-        #Write-Debug "Inside $Script"
-
+        
         # Clear the alerts if pending
+        "`n{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Checking existing alerts to be cleared.." | Write-Output
         foreach($alert in $alerts2Clear) {
-            #$receiver = $alert.Receiver
-            #$receiverName = $alert.ReceiverName
-            #$severity = $alert.Severity
-
             $content = '<p style="color:blue">Alert has cleared. No action pending</p>'
             $body = "$SdtCssStyle $content $footer" | Out-String
             "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' to clear [$($alert.Severity)] alert for [$($alert.ReceiverName)] (if any).." | Write-Output
