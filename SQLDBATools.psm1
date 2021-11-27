@@ -2,8 +2,8 @@
     Module Name:-   SQLDBATools
     Created By:-    Ajay Kumar Dwivedi
     Email ID:-      ajay.dwivedi2007@gmail.com
-    Modified Date:- 12-Nov-2021
-    Version:-       0.0.10
+    Modified Date:- 27-Nov-2021
+    Version:-       0.0.11
 #>
 
 Push-Location;
