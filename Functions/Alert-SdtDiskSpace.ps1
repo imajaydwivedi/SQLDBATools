@@ -41,6 +41,7 @@
             $r
         }
 
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Start RSJobs with $SdtDOP threads.." | Write-Output
         $jobs = @()
         $jobs += $ComputerName | Start-RSJob -Name {$_} -ScriptBlock $blockDbaDiskSpace -Throttle $SdtDOP
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Waiting for RSJobs to complete.." | Write-Verbose
@@ -105,12 +106,13 @@
 
         
         # Get alert rules for the alert key
-        Write-Verbose "Get rules for Alert Key '$Subject'"
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Get rules for Alert Key '$Subject'.." | Write-Output
         $currentAlertRules = @()
         $currentAlertRules += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
                     -Query "select * from $SdtAlertRulesTable ar with (nolock) where alert_key = '$Subject' and is_active = 1";
 
         # Add Warning & Critical threshold inline with Details
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Add inline properties like receiver, thresholds, delay etc based on alert rules.." | Write-Output
         $jobsResultExtended = @()
         foreach($srvGroup in $($jobsResult | Group-Object ComputerName)) {
             [decimal]$alertWarningThreshold = $WarningThresholdPercent
@@ -148,10 +150,11 @@
         $jobsResultFiltered = @()
         $jobsResultFiltered += $jobsResultExtended | Where-Object {$_.PercentUsed -ge $_.WarningThreshold}
         if($jobsResultFiltered.Count -gt 0) {
-            $jobsResultFiltered | Add-Member -MemberType ScriptProperty -Name "Severity" -Value { if($this.PercentUsed -ge $this.CriticalThreshold) {'CRITICAL'} else {'WARNING'} }
+            $jobsResultFiltered | Add-Member -MemberType ScriptProperty -Name "Severity" -Value { if($this.PercentUsed -ge $this.CriticalThreshold) {'Critical'} else {'Warning'} }
         }
 
-        Write-Debug "Inside $Script"
+        # Raise alert
+        $alertsCreated = @()
         foreach($alertGroup in $($jobsResultFiltered | Group-Object -Property ReceiverName, Severity))
         {
             $receiverName = ($alertGroup.Name -split ',')[0].Trim()
@@ -172,18 +175,7 @@
             $alertServers += $alertResult | Select-Object -ExpandProperty Server -Unique
             $serverCounts = $alertServers.Count
 
-            <#
-            $criticalDisks = @()
-            $criticalDisks += $alertResult | Where-Object {$_.Severity -eq 'CRITICAL'}
-            $criticalDisksCount = $criticalDisks.Count
-
-            $warningDisks = @()
-            $warningDisks += $alertResult | Where-Object {$_.Severity -eq 'WARNING'}        
-            $warningDisksCount = $warningDisks.Count
-            #>
-
             $title = "<h2>Alert-SdtDiskSpace - $(if($serverCounts -gt 1){"$serverCounts Servers"}else{"[$alertServers]"}) - $($alertGroup.Count) $severity</h2>"
-            #$content = $alertResult | Sort-Object -Property Severity, Server |  ConvertTo-Html -Fragment
             $params = @{
                         'As'='Table';
                         'PreContent'= "<p>Hi $receiverName,<br><br>Kindly take corrective action.</p><br><h3 class=`"blue`">Disk Space Utilization</h3>";
@@ -191,23 +183,65 @@
                         'OddRowCssClass' = 'odd';
                         'MakeTableDynamic' = $true;
                         'TableCssClass' = 'grid';
-                        'Properties' = 'Server', 'DiskVolume', @{n='Severity';e={$_.Severity};css={if ($_.Severity -eq 'CRITICAL') { 'red' }}},
+                        'Properties' = 'Server', 'DiskVolume', @{n='Severity';e={$_.Severity};css={if ($_.Severity -eq 'Critical') { 'red' }}},
                                         @{n='Warning %';e={$($_.WarningPercent).ToString("#.00")}}, @{n='Critical %';e={$($_.CriticalPercent).ToString("#.00")}},
                                         @{n='Free Space %';e={$_.FreePercent}}, 'DashboardURL'
                     }
             $content = $alertResult | Sort-Object -Property Severity, Server | ConvertTo-EnhancedHTMLFragment @params
             $body = "<html><head>$SdtCssStyle</head><body> $title $content $footer </body></html>" | Out-String
 
-            if($severity -eq 'CRITICAL') { $priority = 'High' } else { $priority = 'Normal'; $severity = 'HIGH' }
+            if($severity -eq 'Critical') { $priority = 'High' } else { $priority = 'Normal'; $severity = 'HIGH' }
             "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' with alert key '$subject' for receiver '$receiverName'.." | Write-Output
             Raise-SdtAlert -To $receiver -Subject $subject -Body $body -ServersAffected $alertServers -Priority $priority -Severity $severity -BodyAsHtml -DelayMinutes $groupAlertDelayMinutes
+            
+            # Create alerted list to clear other combinations
+            $alertsCreated += [PSCustomObject]@{
+                                    ReceiverName = $receiverName;
+                                    Receiver = $receiver;
+                                    Severity = $severity;
+                                    IsAlerted = $true;
+                                    JoinKey = "$receiverName | $severity";
+                                }
         }
 
-        if($jobsResultFiltered.Count -eq 0) {
+        # Get all alert combinations
+        $alertCombinations = @()
+        foreach($alertGroup in $($jobsResultExtended | Group-Object -Property ReceiverName)) {
+            $receiverName = $alertGroup.Name
+            $severity = @('Critical','Warning')
+            [string[]]$receiver = $alertGroup.Group | Select-Object -ExpandProperty Receiver -Unique
+            $alertDelay = $alertGroup.Group | Select-Object -ExpandProperty DelayMinutes -First 1
+
+            foreach($svt in $severity) {
+                $alertCombinations += [PSCustomObject]@{
+                                    ReceiverName = $receiverName;
+                                    Receiver = $receiver;
+                                    Severity = $svt;
+                                    JoinKey = "$receiverName | $svt";
+                                }
+            }
+        }
+
+        # Get alerts to clear
+        $alerts2Clear = @()
+        if($alertsCreated.Count -gt 0) {
+            $alerts2Clear += $alertCombinations
+        } else {
+            $alerts2Clear += Join-SdtObject -Left $alertCombinations -Right $alertsCreated -LeftJoinProperty JoinKey -RightJoinProperty JoinKey `
+                                    -Type AllInLeft -RightProperties IsAlerted | Where-Object {[String]::IsNullOrEmpty($_.IsAlerted)}
+        }
+        #Write-Debug "Inside $Script"
+
+        # Clear the alerts if pending
+        foreach($alert in $alerts2Clear) {
+            #$receiver = $alert.Receiver
+            #$receiverName = $alert.ReceiverName
+            #$severity = $alert.Severity
+
             $content = '<p style="color:blue">Alert has cleared. No action pending</p>'
             $body = "$SdtCssStyle $content $footer" | Out-String
-            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","No space issue found. Calling 'Raise-SdtAlert' to clear active alert (if any).." | Write-Output
-            Raise-SdtAlert -To $EmailTo -Subject $subject -Body $body -Priority 'Normal' -Severity High -BodyAsHtml -ClearAlert -DelayMinutes $DelayMinutes
+            "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Calling 'Raise-SdtAlert' to clear [$($alert.Severity)] alert for [$($alert.ReceiverName)] (if any).." | Write-Output
+            Raise-SdtAlert -To $alert.Receiver -Subject $subject -Body $body -Priority 'Normal' -Severity $alert.Severity -BodyAsHtml -ClearAlert -DelayMinutes $DelayMinutes
         }
     }
     catch {
@@ -225,7 +259,7 @@
 .SYNOPSIS 
     Check Disk Space on Computer, and send Alert 
 .DESCRIPTION
-    This function analyzes disk space on Computer, and send an email alert for CRITICAL & WARNING state.
+    This function analyzes disk space on Computer, and send an email alert for Critical & Warning state.
 .PARAMETER ComputerName
     Server name where disk space has to be analyzed.
 .PARAMETER ExcludeDrive
