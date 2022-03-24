@@ -69,6 +69,7 @@ else {
     if(-not (Test-Path $SdtPrivatePath)) { # create Private folder
         [System.IO.Directory]::CreateDirectory($SdtPrivatePath);
     }
+    [String]$previousEnvFile = $null
     if(-not(Test-Path $SdtEnvFile))
     { # check for Env file in Private folder
         if((Split-Path $SdtModulePath -Leaf) -ne 'SQLDBATools') {
@@ -92,7 +93,7 @@ else {
             "SQLDBATools Module was not installed using Install-Module cmdlet" | Write-Verbose
         }
     }
-    if(-not (Test-Path $previousEnvFile)) {
+    if([String]::IsNullOrEmpty($previousEnvFile) -or (-not (Test-Path $previousEnvFile)) ) {
         Copy-Item $SdtBaseEnvFile -Destination $SdtEnvFile | Out-Null;
         Write-Output "Environment file '$SdtEnvFile' created.`nKindly modify the variable values according to your environment";
     }
