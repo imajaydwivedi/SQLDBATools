@@ -70,9 +70,9 @@ PowerShellVersion = '3.0'
 # ((Get-ChildItem -Path $functionsPath | Select-Object -ExpandProperty BaseName) | % {"'$_'"}) -Join ',' | ogv
 FunctionsToExport = @('Add-SdtApplicationInfo','Add-SdtCollectionError','Add-SdtDatabaseBackupInfo',
                         'Add-SdtDatabaseInfo','Add-SdtHostsEntry','Add-SdtServerInfo','Add-SdtSqlAgentOperator',
-                        'Add-SdtSqlInstanceInfo','Add-SdtVolumeInfo','Alert-SdtDiskSpace','Export-SdtPassword',
-                        'Find-SdtKeywordInSQLDBATools','Find-SdtSQLInstances','Get-SdtAdministrativeEvents',
-                        'Get-SdtAdUserInfo','Get-SdtBackupHistory','Get-SdtClusterInfo',
+                        'Add-SdtSqlInstanceInfo','Add-SdtVolumeInfo','Alert-SdtDiskSpace','ConvertTo-SdtMarkdownTable',
+                        'Export-SdtPassword','Find-SdtKeywordInSQLDBATools','Find-SdtSQLInstances',
+                        'Get-SdtAdministrativeEvents','Get-SdtAdUserInfo','Get-SdtBackupHistory','Get-SdtClusterInfo',
                         'Get-SdtDatabaseBackupInfo','Get-SdtDatabaseBackupInfo_SMO','Get-SdtDatabaseInfo',
                         'Get-SdtDatabasePermissions','Get-SdtDatabaseRestoreScript','Get-SdtDbaRestoreScript',
                         'Get-SdtFullQualifiedDomainName','Get-SdtHBAWin','Get-SdtLinkedServer','Get-SdtLocalTime',
