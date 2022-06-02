@@ -10,7 +10,7 @@ RootModule = 'SQLDBATools.psm1'
 
 # Version number of this module.
     # https://jeffbrown.tech/how-to-publish-your-first-powershell-gallery-package/
-ModuleVersion = '0.0.13'
+ModuleVersion = '0.0.14'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -77,14 +77,15 @@ FunctionsToExport = @('Add-SdtApplicationInfo','Add-SdtCollectionError','Add-Sdt
                         'Get-SdtDatabasePermissions','Get-SdtDatabaseRestoreScript','Get-SdtDbaRestoreScript',
                         'Get-SdtFullQualifiedDomainName','Get-SdtHBAWin','Get-SdtLinkedServer','Get-SdtLocalTime',
                         'Get-SdtMacAddress','Get-SdtMachineType','Get-SdtMSSQLLinkPasswords',
-                        'Get-SdtOrphanDatabaseFiles','Get-SdtPassword4Account','Get-SdtPerfMonCounters','Get-SdtPingStatus',
+                        'Get-SdtOrphanDatabaseFiles','Get-SdtPagerDutyEvent','Get-SdtPassword4Account','Get-SdtPerfMonCounters','Get-SdtPingStatus',
                         'Get-SdtPowerPlanInfo','Get-SdtProcessForDBA','Get-SdtRebootHistory','Get-SdtRunningQueries',
                         'Get-SdtSecurityCheckInfo','Get-SdtServers','Get-SdtServerInfo','Get-SdtSpaceToAdd','Get-SdtSQLInstance',
                         'Get-SdtSQLInstanceInfo','Get-SdtVolumeInfo','Get-SdtVolumeSpaceConsumers','Get-SdtWhoIsActive',
                         'Grant-SdtSqlAccountRequiredPrivileges','Install-SdtOlaHallengrenMaintenanceScripts',
                         'Install-SdtSqlInstance','Invoke-SdtCommandMultiThreaded','Invoke-Sdtsp_WhoIsActive',
                         'Invoke-SdtSqlQuery','Invoke-SdtTsqlScript','Join-SdtObject','Optimize-SdtModelDatabase',
-                        'Out-SdtDataTable','Raise-SdtAlert','Reset-SdtOwnerShipToSystemAdministrators','Retry-SdtCommand','Select-SdtServerInfo',
+                        'Out-SdtDataTable','Raise-SdtAlert','Reset-SdtOwnerShipToSystemAdministrators','Retry-SdtCommand',
+                        'Send-SdtPagerDutyEvent','Select-SdtServerInfo',
                         'Send-SdtSQLMail','Set-SdtBaselineWithWhoIsActive','Set-SdtBlockingAlert','Set-SdtDatabaseBackupJobs',
                         'Set-SdtDbaConfigurations','Set-SdtDbaLogWalk','Set-SdtDbaMailProfile','Set-SdtIndexOptimizeJobs',
                         'Set-SdtLogWalkAlert_with_ServiceBroker','Set-SdtOwner','Set-SdtSelfServiceModules','Set-SdtServerState',
