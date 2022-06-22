@@ -31,11 +31,126 @@
 
         #1/0;
 
+        Write-Debug "Inside Alert-SdtDiskSpace"
+
+        $serverList = @()
+        $serverList += ($ComputerName | Foreach-Object {"'$_'"}) -join ','
+        [System.Collections.ArrayList]$ComputerNames = @()
+
+        # Is Custom Credential have to be used, then 
+        if($SdtUseSpecificCredentials) 
+        {
+            
+            $sqlMatchServersFromInventory = @"
+;with t_servers as (
+    select server as ServerName, friendly_name, rdp_credential, sql_credential from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    where is_active = 1 and monitoring_enabled = 1 and i.server in ($serverList)
+    union all
+    select friendly_name as ServerName, friendly_name, rdp_credential, sql_credential from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    where is_active = 1 and monitoring_enabled = 1 and  i.friendly_name in ($serverList)
+    union all
+    select sql_instance as ServerName, friendly_name, rdp_credential, sql_credential from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    where is_active = 1 and monitoring_enabled = 1 and  i.sql_instance in ($serverList)
+    union all
+    select ipv4 as ServerName, friendly_name, rdp_credential, sql_credential from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    where is_active = 1 and monitoring_enabled = 1 and  i.ipv4 in ($serverList)
+)
+select i.ServerName, i.friendly_name, rdp_credential_username = i.rdp_credential, sql_credential_username = i.sql_credential
+		,rdp_credential_password = crd_rdp.password
+		,sql_credential_password = crd_sql.password
+from t_servers i
+outer apply (select top 1 server_ip, server_name, [user_name], is_sql_user, is_rdp_user, 
+					password_hash, [password] = cast(DecryptByPassPhrase(cast(salt as varchar),password_hash ,1, server_ip) as varchar),
+					salt, salt_raw = cast(salt as varchar),	created_date, created_by, updated_date, updated_by, 
+					delegate_login_01, delegate_login_02, remarks 
+			from dbo.credential_manager crd
+			where crd.user_name = i.rdp_credential
+			order by (case when server_ip is not null then 1 else 2 end) asc
+			) crd_rdp
+outer apply (select top 1 server_ip, server_name, [user_name], is_sql_user, is_rdp_user, 
+					password_hash, [password] = cast(DecryptByPassPhrase(cast(salt as varchar),password_hash ,1, server_ip) as varchar),
+					salt, salt_raw = cast(salt as varchar),	created_date, created_by, updated_date, updated_by, 
+					delegate_login_01, delegate_login_02, remarks 
+			from dbo.credential_manager crd
+			where crd.user_name = i.sql_credential
+			order by (case when server_ip is not null then 1 else 2 end) asc
+			) crd_sql
+"@
+            $matchedServersFromInventory = @()
+            $matchedServersFromInventory += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $sqlMatchServersFromInventory -EnableException
+
+            foreach($comp in $matchedServersFromInventory) 
+            {
+                #"Working on [$($comp.ServerName)].." | Write-Host
+
+                [PSCredential]$rdpCredential = $null
+                [PSCredential]$sqlCredential = $null
+
+                if(-not [String]::IsNullOrEmpty($comp.rdp_credential_username)) {
+                    [SecureString]$rdpCredentialSecureString = $null
+                    [SecureString]$rdpCredentialSecureString = $comp.rdp_credential_password | ConvertTo-SecureString -AsPlainText -Force;
+                    [PSCredential]$rdpCredential = New-Object System.Management.Automation.PSCredential -ArgumentList $comp.rdp_credential_username, $rdpCredentialSecureString;
+                }
+                if(-not [String]::IsNullOrEmpty($comp.sql_credential_username)) {
+                    [SecureString]$sqlCredentialSecureString = $null
+                    [SecureString]$sqlCredentialSecureString = $comp.sql_credential_password | ConvertTo-SecureString -AsPlainText -Force;
+                    [PSCredential]$sqlCredential = New-Object System.Management.Automation.PSCredential -ArgumentList $comp.sql_credential_username, $sqlCredentialSecureString;
+                }
+
+                $obj = [PSCustomObject]@{
+                    ComputerName = $comp.ServerName
+                    FriendlyName = $comp.friendly_name
+                    RdpCredential = $rdpCredential
+                    SqlCredential = $sqlCredential
+                } 
+                $ComputerNames.Add($obj) | Out-Null
+            }
+        }
+        else 
+        {
+            
+            $sqlMatchServersFromInventory = @"
+;with t_servers as (
+    select server as ServerName, friendly_name, rdp_credential = null, sql_credential = null from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    where is_active = 1 and monitoring_enabled = 1 and i.server in ($serverList)
+    union all
+    select friendly_name as ServerName, friendly_name, rdp_credential = null, sql_credential = null from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    where is_active = 1 and monitoring_enabled = 1 and  i.friendly_name in ($serverList)
+    union all
+    select sql_instance as ServerName, friendly_name, rdp_credential = null, sql_credential = null from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    where is_active = 1 and monitoring_enabled = 1 and  i.sql_instance in ($serverList)
+    union all
+    select ipv4 as ServerName, friendly_name, rdp_credential = null, sql_credential = null from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    where is_active = 1 and monitoring_enabled = 1 and  i.ipv4 in ($serverList)
+)
+select i.ServerName, i.friendly_name, rdp_credential_username = i.rdp_credential, sql_credential_username = i.sql_credential
+from t_servers i
+"@
+            $matchedServersFromInventory = @()
+            $matchedServersFromInventory += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $sqlMatchServersFromInventory -EnableException
+
+            foreach($comp in $matchedServersFromInventory) 
+            {
+                #"Working on [$($comp.ServerName)].." | Write-Host
+
+                $obj = [PSCustomObject]@{
+                    ComputerName = $comp.ServerName
+                    FriendlyName = $comp.friendly_name
+                    RdpCredential = $null
+                    SqlCredential = $null
+                } 
+                $ComputerNames.Add($obj) | Out-Null
+            }
+        }
+
         # Start Actual Work
         $blockDbaDiskSpace = {
-            $ComputerName = $_
-            $FriendlyName = $ComputerName.Split('.')[0]
-            $r = Get-DbaDiskSpace -ComputerName $ComputerName -EnableException
+            $ComputerName = $_.ComputerName
+            $FriendlyName = $_.FriendlyName
+            $RdpCredential = $_.RdpCredential
+            $SqlCredential = $_.SqlCredential
+
+            $r = Get-DbaDiskSpace -ComputerName $ComputerName -Credential $RdpCredential -EnableException
             $r | Add-Member -NotePropertyName FriendlyName -NotePropertyValue $FriendlyName
             $r | Add-Member -MemberType ScriptProperty -Name "PercentUsed" -Value {[math]::Round((100.00 - $this.PercentFree), 2)}
             $r
@@ -43,7 +158,7 @@
 
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Start RSJobs with $SdtDOP threads.." | Write-Output
         $jobs = @()
-        $jobs += $ComputerName | Start-RSJob -Name {$_} -ScriptBlock $blockDbaDiskSpace -Throttle $SdtDOP
+        $jobs += $ComputerNames | Start-RSJob -Name {"$($_.ComputerName)"} -ScriptBlock $blockDbaDiskSpace -Throttle $SdtDOP
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Waiting for RSJobs to complete.." | Write-Verbose
         $jobs | Wait-RSJob -ShowProgress -Timeout 1200 -Verbose:$false | Out-Null
 
