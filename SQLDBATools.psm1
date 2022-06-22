@@ -172,6 +172,30 @@ elseif ($isEnvFileLoaded)
     `n`n$SdtAlertTableDefinitionSql`n"
             Write-Warning -Message $message;
         }
+
+
+        # $SdtErrorTable
+        $r = Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+                        -Query "select [exists] = convert(bit,(case when object_id('$SdtErrorTable') is not null then 1 else 0 end));"
+        if(-not $r.exists)
+        {
+            $message = "Table '$SdtErrorTable' not found in [$SdtInventoryDatabase] database of [$SdtInventoryInstance] server.
+    `nKindly create it in [$SdtInventoryInstance].[$SdtInventoryDatabase] database using below tsql -
+    `n`n$SdtErrorTableDefinitionSql`n"
+            Write-Warning -Message $message;
+        }
+
+
+        # $SdtAlertRulesTable
+        $r = Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase `
+                        -Query "select [exists] = convert(bit,(case when object_id('$SdtAlertRulesTable') is not null then 1 else 0 end));"
+        if(-not $r.exists)
+        {
+            $message = "Table '$SdtAlertRulesTable' not found in [$SdtInventoryDatabase] database of [$SdtInventoryInstance] server.
+    `nKindly create it in [$SdtInventoryInstance].[$SdtInventoryDatabase] database using below tsql -
+    `n`n$SdtAlertRulesTableDefinitionSql`n"
+            Write-Warning -Message $message;
+        }
     }
 }
 
