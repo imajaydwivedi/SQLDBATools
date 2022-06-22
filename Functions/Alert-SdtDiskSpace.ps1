@@ -43,19 +43,19 @@
             
             $sqlMatchServersFromInventory = @"
 ;with t_servers as (
-    select server as ServerName, friendly_name, rdp_credential, sql_credential from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    select server as ServerName, friendly_name, host_name, rdp_credential, sql_credential from [$SdtInventoryDatabase].[dbo].[sdt_server_inventory] i 
     where is_active = 1 and monitoring_enabled = 1 and i.server in ($serverList)
     union all
-    select friendly_name as ServerName, friendly_name, rdp_credential, sql_credential from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    select friendly_name as ServerName, friendly_name, host_name, rdp_credential, sql_credential from [$SdtInventoryDatabase].[dbo].[sdt_server_inventory] i 
     where is_active = 1 and monitoring_enabled = 1 and  i.friendly_name in ($serverList)
     union all
-    select sql_instance as ServerName, friendly_name, rdp_credential, sql_credential from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    select sql_instance as ServerName, friendly_name, host_name, rdp_credential, sql_credential from [$SdtInventoryDatabase].[dbo].[sdt_server_inventory] i 
     where is_active = 1 and monitoring_enabled = 1 and  i.sql_instance in ($serverList)
     union all
-    select ipv4 as ServerName, friendly_name, rdp_credential, sql_credential from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    select ipv4 as ServerName, friendly_name, host_name, rdp_credential, sql_credential from [$SdtInventoryDatabase].[dbo].[sdt_server_inventory] i 
     where is_active = 1 and monitoring_enabled = 1 and  i.ipv4 in ($serverList)
 )
-select i.ServerName, i.friendly_name, rdp_credential_username = i.rdp_credential, sql_credential_username = i.sql_credential
+select i.ServerName, i.friendly_name, i.host_name, rdp_credential_username = i.rdp_credential, sql_credential_username = i.sql_credential
 		,rdp_credential_password = crd_rdp.password
 		,sql_credential_password = crd_sql.password
 from t_servers i
@@ -89,7 +89,12 @@ outer apply (select top 1 server_ip, server_name, [user_name], is_sql_user, is_r
                 if(-not [String]::IsNullOrEmpty($comp.rdp_credential_username)) {
                     [SecureString]$rdpCredentialSecureString = $null
                     [SecureString]$rdpCredentialSecureString = $comp.rdp_credential_password | ConvertTo-SecureString -AsPlainText -Force;
-                    [PSCredential]$rdpCredential = New-Object System.Management.Automation.PSCredential -ArgumentList $comp.rdp_credential_username, $rdpCredentialSecureString;
+                    if($comp.rdp_credential_username -eq 'Administrator') {
+                        [PSCredential]$rdpCredential = New-Object System.Management.Automation.PSCredential -ArgumentList $($comp.host_name+'\'+$comp.rdp_credential_username), $rdpCredentialSecureString;
+                    }
+                    else {
+                        [PSCredential]$rdpCredential = New-Object System.Management.Automation.PSCredential -ArgumentList $comp.rdp_credential_username, $rdpCredentialSecureString;
+                    }
                 }
                 if(-not [String]::IsNullOrEmpty($comp.sql_credential_username)) {
                     [SecureString]$sqlCredentialSecureString = $null
@@ -100,6 +105,7 @@ outer apply (select top 1 server_ip, server_name, [user_name], is_sql_user, is_r
                 $obj = [PSCustomObject]@{
                     ComputerName = $comp.ServerName
                     FriendlyName = $comp.friendly_name
+                    HostName = $comp.host_name
                     RdpCredential = $rdpCredential
                     SqlCredential = $sqlCredential
                 } 
@@ -111,16 +117,16 @@ outer apply (select top 1 server_ip, server_name, [user_name], is_sql_user, is_r
             
             $sqlMatchServersFromInventory = @"
 ;with t_servers as (
-    select server as ServerName, friendly_name, rdp_credential = null, sql_credential = null from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    select server as ServerName, friendly_name, host_name, rdp_credential = null, sql_credential = null from [$SdtInventoryDatabase].[dbo].[sdt_server_inventory] i 
     where is_active = 1 and monitoring_enabled = 1 and i.server in ($serverList)
     union all
-    select friendly_name as ServerName, friendly_name, rdp_credential = null, sql_credential = null from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    select friendly_name as ServerName, friendly_name, host_name, rdp_credential = null, sql_credential = null from [$SdtInventoryDatabase].[dbo].[sdt_server_inventory] i 
     where is_active = 1 and monitoring_enabled = 1 and  i.friendly_name in ($serverList)
     union all
-    select sql_instance as ServerName, friendly_name, rdp_credential = null, sql_credential = null from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    select sql_instance as ServerName, friendly_name, host_name, rdp_credential = null, sql_credential = null from [$SdtInventoryDatabase].[dbo].[sdt_server_inventory] i 
     where is_active = 1 and monitoring_enabled = 1 and  i.sql_instance in ($serverList)
     union all
-    select ipv4 as ServerName, friendly_name, rdp_credential = null, sql_credential = null from [SQLDBATools].[dbo].[sdt_server_inventory] i 
+    select ipv4 as ServerName, friendly_name, host_name, rdp_credential = null, sql_credential = null from [$SdtInventoryDatabase].[dbo].[sdt_server_inventory] i 
     where is_active = 1 and monitoring_enabled = 1 and  i.ipv4 in ($serverList)
 )
 select i.ServerName, i.friendly_name, rdp_credential_username = i.rdp_credential, sql_credential_username = i.sql_credential
@@ -136,6 +142,7 @@ from t_servers i
                 $obj = [PSCustomObject]@{
                     ComputerName = $comp.ServerName
                     FriendlyName = $comp.friendly_name
+                    HostName = $comp.host_name
                     RdpCredential = $null
                     SqlCredential = $null
                 } 
