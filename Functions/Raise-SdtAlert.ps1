@@ -65,8 +65,32 @@
         Write-Verbose "Setup mail profiles in `$mailParams"
         if($SdtSmtpServer -eq 'smtp.gmail.com') {
             $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; Credential = $SdtSmtpGmailCredential; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
-        } else {
-            $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
+        } 
+        else 
+        {            
+            if([String]::IsNullOrEmpty($SdtSmtpCredential))
+            {
+                $sqlMailAccount = @"
+select top 1 [user_name], [password] = cast(DecryptByPassPhrase(cast(salt as varchar),password_hash ,1, server_ip) as varchar)
+from dbo.credential_manager crd
+where crd.server_name = '$SdtSmtpServer'
+order by (case when server_ip is not null then 1 else 2 end) asc
+"@
+                $mailAccount = @()
+                $mailAccount += Invoke-DbaQuery -SqlInstance $SdtInventoryInstance -Database $SdtInventoryDatabase -Query $sqlMailAccount
+                if($mailAccount.count -ne 0) {
+                    $mailAccountUserName = $mailAccount.user_name
+                    $mailAccountPassword = $mailAccount.password
+                    $global:SdtSmtpCredential = $(New-Object System.Management.Automation.PSCredential ($mailAccountUserName, $(ConvertTo-SecureString $mailAccountPassword -AsPlainText -Force)));
+                }
+            }
+
+            if([String]::IsNullOrEmpty($SdtSmtpCredential)) {
+                $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
+            }
+            else {
+                $mailParams = @{ From = $SdtAlertEmailAddress; To = $To; SmtpServer = $SdtSmtpServer; Port = $SdtSmtpServerPort; UseSsl = $SdtUseSsl; Credential = $SdtSmtpCredential; BodyAsHtml=$BodyAsHtml; DeliveryNotificationOption = @('OnSuccess', 'OnFailure');}
+            }
         }
 
         # Get current alert details from Inventory
