@@ -14,7 +14,7 @@ Function ConvertTo-SdtMarkdownTable {
 
   Begin {
     $items = @()
-    $columns = @{}
+    $columns = [ordered]@{}
   }
 
   Process {
@@ -23,7 +23,7 @@ Function ConvertTo-SdtMarkdownTable {
 
       $item.PSObject.Properties | ForEach-Object {
         if ($null -ne $_.Value ) {
-          if (-not $columns.ContainsKey($_.Name) -or $columns[$_.Name] -lt $_.Value.ToString().Length) {
+          if ((-not ($columns.Keys -contains $_.Name)) -or $columns[$_.Name] -lt $_.Value.ToString().Length) {
             $columns[$_.Name] = $_.Value.ToString().Length
           }
         }
@@ -78,9 +78,9 @@ Function ConvertTo-SdtMarkdownTable {
 .Synopsis
     Converts a PowerShell object to a Markdown table.
 .EXAMPLE
-    $data | ConvertTo-Markdown
+    $data | ConvertTo-SdtMarkdownTable
 .EXAMPLE
-    ConvertTo-Markdown($data)
+    ConvertTo-SdtMarkdownTable($data)
 .EXAMPLE
     $InputObject = Get-Service | Select-Object Name, Status, DisplayName -First 5
     $InputObject | ConvertTo-SdtMarkdownTable

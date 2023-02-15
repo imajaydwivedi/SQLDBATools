@@ -1,8 +1,8 @@
-﻿<#
+<#
     Module Name:-   SQLDBATools
     Created By:-    Ajay Kumar Dwivedi
     Email ID:-      ajay.dwivedi2007@gmail.com
-    Modified Date:- 01-Apr-2022
+    Modified Date:- 15-Feb-2023
     Version:-       0.0.14
 #>
 
@@ -103,11 +103,17 @@ else {
 
 # Validate Private\EnvFile with Dependencies\EnvFile for variable counts
 if($isEnvFileLoaded) {
-    $sdtEnvVariables = (Get-Variable Sdt* -Scope Global | Where-Object {$_.Name -notin @($SdtModuleVariables.Name)})
+    $sdtEnvVariables = @()
+    $sdtEnvVariables += (Get-Variable Sdt* -Scope Global | Where-Object {$_.Name -notin @($SdtModuleVariables.Name)})
     $missingVariables = @()
-    $missingVariables += ($SdtBaseEnvVariablesList | ForEach-Object {if($_ -notin $sdtEnvVariables.Name){$_}})
+    if($sdtEnvVariables.Count -gt 0) {
+        $missingVariables += ($SdtBaseEnvVariablesList | ForEach-Object {if($_ -notin $sdtEnvVariables.Name){$_}})
+    }
+    else {
+        $missingVariables += $SdtBaseEnvVariablesList
+    }
 
-    if($missingVariables.Count -ne 0) {
+    if($missingVariables.Count -ne 0 -and $SdtEnableInventory) {
         Write-Error "`n$('*'*60)`nFollowing Environment Variables are missing =>`n$('-'*15)`n$($missingVariables -join ', ')`n$('-'*15)`nKindly copy above specific variables `nfrom `t '$SdtBaseEnvFile' `nto `t`t'$SdtEnvFile'`n`n$('*'*60)`n" -ErrorAction Stop
     }
 }
