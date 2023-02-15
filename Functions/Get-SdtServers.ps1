@@ -10,4 +10,5 @@
     $Global:SdtServerList += $Global:SdtInventoryTableData | Select-Object -ExpandProperty server -Unique ;
     $Global:SdtFriendlyNameList += $Global:SdtInventoryTableData | Select-Object -ExpandProperty friendly_name -Unique ;
     $Global:SdtSqlInstanceList += $Global:SdtInventoryTableData | Select-Object -ExpandProperty sql_instance -Unique ;
+    $Global:SdtServerIPList += $Global:SdtInventoryTableData | Select-Object -ExpandProperty ipv4 -Unique ;
 }

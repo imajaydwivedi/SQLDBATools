@@ -45,8 +45,8 @@ $servers = @('SqlDr1','SqlProd1')
 #$servers = $SdtFriendlyNameList
 & "C:\Users\$($env:USERNAME)\Documents\WindowsPowerShell\Modules\SQLDBATools\Wrapper\Wrapper-SdtDiskSpace.ps1" `
         -DelayMinutes 1 -WarningThresholdPercent 65 -CriticalThresholdPercent 85 `
+        -Debug `
         -ComputerName $servers -Verbose `
-        -Debug
 
 cls
 Get-SdtServers -Verbose

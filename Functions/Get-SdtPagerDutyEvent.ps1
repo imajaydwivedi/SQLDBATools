@@ -40,7 +40,8 @@
             $query = '?status=triggered'
         }
 
-        $results = Invoke-RestMethod -Uri ('https://' + $PagerDutySubDomain + '.pagerduty.com/api/v1/incidents' + $query) -method Get -ContentType "application/json" -Headers @{"Authorization"=("Token token=" + $APIKey)}
+        #$results = Invoke-RestMethod -Uri ('https://' + $PagerDutySubDomain + '.pagerduty.com/api/v1/incidents' + $query) -method Get -ContentType "application/json" -Headers @{"Authorization"=("Token token=" + $APIKey)}
+        $results = Invoke-RestMethod -Uri ('https://events.pagerduty.com/v2/enqueue' + $query) -method Get -ContentType "application/json" -Headers @{"Authorization"=("Token token=" + $APIKey)}
         
         # Clean the OutPut
         $results.incidents | Select-Object incident_number,incident_key,status,trigger_summary_data

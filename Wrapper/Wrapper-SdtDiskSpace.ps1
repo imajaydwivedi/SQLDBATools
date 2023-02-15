@@ -107,12 +107,17 @@ try
 {
     "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","ComputerName not provided." | Tee-Object $executionLogFile -Append | Write-Output
     if([String]::IsNullOrEmpty($ComputerName)) {
-        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Fetch list of servers from Inventory.." | Tee-Object $executionLogFile -Append | Write-Output
+        "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Fetch list of servers from Inventory $(if($SdtUseSpecificCredentials){'by IP'}).." | Tee-Object $executionLogFile -Append | Write-Output
         if($SdtInventoryTableData.Count -eq 0) {
             Get-SdtServers -Verbose
         }
         $ComputerName = @()
-        $ComputerName += $SdtServerList;
+        if($SdtUseSpecificCredentials) {
+            $ComputerName += $SdtServerIPList;
+        }
+        else {
+            $ComputerName += $SdtServerList;
+        }
     }
 
     #1/0;

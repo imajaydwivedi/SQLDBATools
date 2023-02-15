@@ -1,0 +1,88 @@
+Tue, 21 Jun 15:53:56	This log contains information about the import schema operation into project 'SQLDBATools' on computer '21L-LTPABL-1187' by user 'Ajay'.
+Tue, 21 Jun 15:53:56	Import of database schema has started.
+Tue, 21 Jun 15:54:05	Gathering database credentials
+Tue, 21 Jun 15:54:05	Gathering database options
+Tue, 21 Jun 15:54:05	Gathering generic database scoped configuration option
+Tue, 21 Jun 15:54:05	Gathering users
+Tue, 21 Jun 15:54:05	Gathering roles
+Tue, 21 Jun 15:54:05	Gathering application roles
+Tue, 21 Jun 15:54:05	Gathering role memberships
+Tue, 21 Jun 15:54:05	Gathering filegroups
+Tue, 21 Jun 15:54:05	Gathering full-text catalogs
+Tue, 21 Jun 15:54:05	Gathering assemblies
+Tue, 21 Jun 15:54:05	Gathering certificates
+Tue, 21 Jun 15:54:05	Gathering asymmetric keys
+Tue, 21 Jun 15:54:05	Gathering symmetric keys
+Tue, 21 Jun 15:54:05	Gathering encrypted symmetric keys
+Tue, 21 Jun 15:54:05	Gathering schemas
+Tue, 21 Jun 15:54:05	Gathering XML schema collections
+Tue, 21 Jun 15:54:05	Gathering user-defined data types
+Tue, 21 Jun 15:54:05	Gathering user-defined types
+Tue, 21 Jun 15:54:05	Gathering table types
+Tue, 21 Jun 15:54:05	Gathering unique keys for table types
+Tue, 21 Jun 15:54:05	Gathering primary keys for table types
+Tue, 21 Jun 15:54:05	Gathering indexes for table types
+Tue, 21 Jun 15:54:05	Gathering check constraints for table types
+Tue, 21 Jun 15:54:05	Gathering default constraints for table types
+Tue, 21 Jun 15:54:05	Gathering partition functions
+Tue, 21 Jun 15:54:05	Gathering partition schemes
+Tue, 21 Jun 15:54:05	Gathering functions
+Tue, 21 Jun 15:54:05	Gathering encrypted functions
+Tue, 21 Jun 15:54:05	Gathering aggregates
+Tue, 21 Jun 15:54:05	Gathering procedures
+Tue, 21 Jun 15:54:06	Gathering encrypted procedures
+Tue, 21 Jun 15:54:06	Gathering tables
+Tue, 21 Jun 15:54:06	Gathering primary keys
+Tue, 21 Jun 15:54:06	Gathering unique constraints
+Tue, 21 Jun 15:54:06	Gathering foreign keys
+Tue, 21 Jun 15:54:06	Gathering default constraints
+Tue, 21 Jun 15:54:06	Gathering check constraints
+Tue, 21 Jun 15:54:06	Gathering views
+Tue, 21 Jun 15:54:06	Gathering encrypted views
+Tue, 21 Jun 15:54:06	Gathering indexes
+Tue, 21 Jun 15:54:06	Gathering statistics
+Tue, 21 Jun 15:54:06	Gathering full-text index stoplists
+Tue, 21 Jun 15:54:06	Gathering search property lists
+Tue, 21 Jun 15:54:06	Gathering search properties
+Tue, 21 Jun 15:54:06	Gathering full-text indexes
+Tue, 21 Jun 15:54:06	Gathering column store indexes
+Tue, 21 Jun 15:54:07	Gathering spatial indexes
+Tue, 21 Jun 15:54:07	Gathering XML indexes
+Tue, 21 Jun 15:54:07	Gathering Selective XML indexes
+Tue, 21 Jun 15:54:07	Gathering encrypted triggers
+Tue, 21 Jun 15:54:07	Gathering triggers
+Tue, 21 Jun 15:54:07	Gathering encrypted and clr ddl triggers
+Tue, 21 Jun 15:54:07	Gathering ddl triggers
+Tue, 21 Jun 15:54:07	Creating edge constraints
+Tue, 21 Jun 15:54:07	Gathering synonyms
+Tue, 21 Jun 15:54:07	Gathering defaults
+Tue, 21 Jun 15:54:07	Gathering data constraint uddt bindings
+Tue, 21 Jun 15:54:07	Gathering rules
+Tue, 21 Jun 15:54:07	Gathering data constraint uddt bindings
+Tue, 21 Jun 15:54:07	Gathering message types
+Tue, 21 Jun 15:54:07	Gathering queues
+Tue, 21 Jun 15:54:07	Gathering contracts
+Tue, 21 Jun 15:54:07	Gathering services
+Tue, 21 Jun 15:54:07	Gathering event notifications
+Tue, 21 Jun 15:54:07	Gathering remote service bindings
+Tue, 21 Jun 15:54:07	Gathering broker priorities
+Tue, 21 Jun 15:54:07	Gathering signatures
+Tue, 21 Jun 15:54:07	Gathering data compression options
+Tue, 21 Jun 15:54:07	Gathering sequence types
+Tue, 21 Jun 15:54:07	Gathering security policies
+Tue, 21 Jun 15:54:07	Gather column encryption keys
+Tue, 21 Jun 15:54:07	Gathering column master keys
+Tue, 21 Jun 15:54:07	Gathering external data sources
+Tue, 21 Jun 15:54:07	Gathering external file formats
+Tue, 21 Jun 15:54:07	Gathering external tables
+Tue, 21 Jun 15:54:07	Gathering database permissions
+Tue, 21 Jun 15:54:07	Gathering extended properties
+Tue, 21 Jun 15:54:07	Gathering assemblies
+Tue, 21 Jun 15:54:07	Gathering credentials
+Tue, 21 Jun 15:54:07	Gathering logins
+Tue, 21 Jun 15:54:07	Gathering server audits
+Tue, 21 Jun 15:54:07	Scanning project for duplicate elements
+Tue, 21 Jun 15:54:07	Finished duplicate element processing
+Tue, 21 Jun 15:54:08	Finished importing database.
+Tue, 21 Jun 15:54:08	A summary of the import was saved to the following location: C:\Users\Ajay\Documents\WindowsPowerShell\Modules\SQLDBATools\SQLDBATools\SQLDBATools\Import Schema Logs\SQLDBATools_20220621102356.log
+Tue, 21 Jun 15:54:08	Click Finish to continue...
